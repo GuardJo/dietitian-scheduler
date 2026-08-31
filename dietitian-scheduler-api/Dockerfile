@@ -10,7 +10,7 @@ RUN chmod +x gradlew
 COPY src ./src
 RUN ./gradlew clean bootJar --no-daemon
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 RUN addgroup -g 10001 -S spring \
