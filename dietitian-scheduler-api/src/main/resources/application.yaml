@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: dientitian-scheduler-api
+  docker:
+    compose:
+      enabled: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dietitian
+    username: manager
+    password: manager0
