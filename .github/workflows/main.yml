@@ -1,8 +1,8 @@
-name: dietitian-schduler-api-workflow
+name: dietitian-scheduler-api-workflow
 on:
   pull_request:
     paths:
-      - dietitian-schduler-api/**
+      - dietitian-scheduler-api/**
       - .github/workflows/main.yml
     branches:
       - main
@@ -13,7 +13,7 @@ on:
     tags:
       - api-v*
     paths:
-      - dietitian-schduler-api/**
+      - dietitian-scheduler-api/**
       - .github/workflows/main.yml
 
   workflow_dispatch:
@@ -21,7 +21,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/dietitian-schduler-api
+  IMAGE_NAME: ${{ github.repository_owner }}/dietitian-scheduler-api
 
 jobs:
   build:
@@ -54,8 +54,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: ./dietitian-schduler-api
-          file: ./dietitian-schduler-api/Dockerfile
+          context: ./dietitian-scheduler-api
+          file: ./dietitian-scheduler-api/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
