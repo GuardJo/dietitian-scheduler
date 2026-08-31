@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: dientitian-scheduler-api
+  docker:
+    compose:
+      enabled: false
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/dietitian
+    username: manager
+    password: manager0
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        default_batch_fetch_size: 1000
+        dialect: org.hibernate.dialect.PostgreSQLDialect

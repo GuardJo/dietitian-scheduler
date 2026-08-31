@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: 'postgres:17.5'
+    environment:
+      POSTGRES_DB: dietitian
+      POSTGRES_PASSWORD: manager0
+      POSTGRES_USER: manager
+    ports:
+      - "5432:5432"
