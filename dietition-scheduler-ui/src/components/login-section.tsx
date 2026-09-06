@@ -1,19 +1,32 @@
+"use client";
+
 import {BriefcaseMedical, LockKeyhole, User2} from "lucide-react";
 import {useRouter} from "next/navigation";
+import {useMutation} from "@tanstack/react-query";
 import React from "react";
+
+import type {ApiError} from "@/lib/http-client";
+import {authService, type LoginRequest, type LoginResponse} from "@/services/auth-service";
 
 /*
 로그인 섹션 컴포넌트
  */
 export default function LoginSection() {
     const router = useRouter();
+    const {mutate: login, isPending, isError, error} = useMutation<LoginResponse, ApiError, LoginRequest>({
+        mutationFn: (payload) => authService.login(payload),
+        onSuccess: () => {
+            router.replace("/");
+        },
+    });
 
-    const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        console.log(`Logged in ${formData.get("id")}`);
-        // TODO API 연동
-        router.push("/");
+        login({
+            username: String(formData.get("id") ?? ""),
+            password: String(formData.get("password") ?? ""),
+        });
     }
 
     const handleContactAdmin = () => {
@@ -41,7 +54,7 @@ export default function LoginSection() {
                     <div className="relative">
                         <User2 aria-hidden="true"
                                className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground sm:left-7 sm:h-10 sm:w-10"/>
-                        <input id="id" name="id" type="text" placeholder="아이디를 입력하세요."
+                        <input id="id" name="id" type="text" placeholder="아이디를 입력하세요." required
                                className="h-12 w-full rounded-[10px] border-2 border-input bg-input px-3 pl-10 text-[16px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 sm:h-24 sm:rounded-2xl sm:pl-24 sm:text-[28px]"/>
                     </div>
                 </div>
@@ -53,14 +66,19 @@ export default function LoginSection() {
                     <div className="relative">
                         <LockKeyhole aria-hidden="true"
                                      className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground sm:left-7 sm:h-10 sm:w-10"/>
-                        <input id="password" name="password" type="password"
+                        <input id="password" name="password" type="password" required
                                autoComplete="current-password" placeholder="비밀번호를 입력하세요."
                                className="h-12 w-full rounded-[10px] border-2 border-input bg-input px-3 pl-10 text-[16px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 sm:h-24 sm:rounded-2xl sm:pl-24 sm:text-[28px]"/>
                     </div>
                 </div>
-                <button type="submit"
-                        className="h-12 rounded-[10px] bg-primary text-[20px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/25 sm:h-24 sm:rounded-2xl sm:text-[32px]">Sign
-                    In
+                {isError && (
+                    <p role="alert" className="text-[14px] leading-tight text-destructive sm:text-xl">
+                        {error?.message ?? "로그인에 실패했습니다. 잠시 후 다시 시도해주세요."}
+                    </p>
+                )}
+                <button type="submit" disabled={isPending}
+                        className="h-12 rounded-[10px] bg-primary text-[20px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-60 sm:h-24 sm:rounded-2xl sm:text-[32px]">
+                    {isPending ? "로그인 중..." : "Sign In"}
                 </button>
             </form>
             <p className="mt-auto pt-7 text-center text-[15px] leading-relaxed text-muted-foreground sm:pt-14 sm:text-2xl">비밀번호를
