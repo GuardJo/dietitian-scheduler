@@ -1,5 +1,6 @@
 import type {Metadata, Viewport} from "next";
 import "./globals.css";
+import Providers from "@/app/providers";
 
 export const metadata: Metadata = {
     title: "손케줄",
@@ -19,7 +20,9 @@ export const viewport: Viewport = {
 export default function RootLayout({children}: LayoutProps<"/">) {
     return (
         <html lang="ko" className="bg-background">
-        <body className="antialiased">{children}</body>
+        <body className="antialiased">
+        <Providers>{children}</Providers>
+        </body>
         </html>
     );
 }
