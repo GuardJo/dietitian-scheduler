@@ -38,6 +38,10 @@ export default function Providers({children}: {children: React.ReactNode}) {
         let cancelled = false;
         import("@/mocks")
             .then(({enableMocking}) => enableMocking())
+            .catch((error) => {
+                // 모킹 기동에 실패해도 앱은 그대로 렌더링하고 실제 API 로 요청한다.
+                console.error("[msw] 모킹 활성화에 실패했습니다.", error);
+            })
             .finally(() => {
                 if (!cancelled) {
                     setIsMockingReady(true);

@@ -3,13 +3,18 @@
 
 Providers 에서 개발 모드일 때만 동적 import 하여 호출한다.
  */
-export async function enableMocking(): Promise<void> {
+const globalRef = globalThis as typeof globalThis & {
+    __mswStartPromise?: Promise<void>;
+};
+
+export function enableMocking(): Promise<void> {
     if (typeof window === "undefined") {
-        return;
+        return Promise.resolve();
     }
 
-    const {worker} = await import("@/mocks/browser");
-    await worker.start({
-        onUnhandledRequest: "bypass",
-    });
+    globalRef.__mswStartPromise ??= import("@/mocks/browser")
+        .then(({worker}) => worker.start({onUnhandledRequest: "bypass"}))
+        .then(() => undefined);
+
+    return globalRef.__mswStartPromise;
 }
