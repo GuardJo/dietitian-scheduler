@@ -53,7 +53,8 @@ export const handlers = [
         return HttpResponse.json(body, {
             status: 200,
             headers: {
-                "Set-Cookie": `${AUTH_COOKIE}=${createMockJwt(username)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600`,
+                // mocking 응답에 한해 httpOnly 설정 제거
+                "Set-Cookie": `${AUTH_COOKIE}=${createMockJwt(username)}; Path=/; SameSite=Lax; Max-Age=3600`,
             },
         });
     }),
