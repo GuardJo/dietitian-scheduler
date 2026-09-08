@@ -4,6 +4,7 @@ import {useEffect, useState} from "react";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 
 import {IS_API_MOCKING_ENABLED} from "@/lib/config";
+import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
 
 /*
 클라이언트 전역 Provider
@@ -27,7 +28,7 @@ function createQueryClient() {
     });
 }
 
-export default function Providers({children}: {children: React.ReactNode}) {
+export default function Providers({children}: { children: React.ReactNode }) {
     const [queryClient] = useState(createQueryClient);
     const [isMockingReady, setIsMockingReady] = useState(!IS_API_MOCKING_ENABLED);
 
@@ -56,5 +57,10 @@ export default function Providers({children}: {children: React.ReactNode}) {
         return null;
     }
 
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return (
+        <QueryClientProvider client={queryClient}>
+            {children}
+            <ReactQueryDevtools initialIsOpen={false}/>
+        </QueryClientProvider>
+    );
 }

@@ -14,6 +14,7 @@ import {authService, type LoginRequest, type LoginResponse} from "@/services/aut
 export default function LoginSection() {
     const router = useRouter();
     const {mutate: login, isPending, isError, error} = useMutation<LoginResponse, ApiError, LoginRequest>({
+        mutationKey: ["login"],
         mutationFn: (payload) => authService.login(payload),
         onSuccess: () => {
             router.replace("/");

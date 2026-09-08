@@ -27,6 +27,7 @@
   "devDependencies": {
     "@storybook/nextjs-vite": "^10.5.10",
     "@tailwindcss/postcss": "^4",
+    "@tanstack/react-query-devtools": "^5.102.8",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
