@@ -1,3 +1,5 @@
+"use client"
+
 import {ChevronDown, Menu} from "lucide-react";
 import {useState} from "react";
 import {useMutation} from "@tanstack/react-query";
