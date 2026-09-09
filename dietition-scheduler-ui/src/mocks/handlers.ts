@@ -58,4 +58,12 @@ export const handlers = [
             },
         });
     }),
+    http.post("*/api/auth/logout", async () => {
+        return new HttpResponse(null, {
+            status: 204,
+            headers: {
+                "Set-Cookie": `${AUTH_COOKIE}=; Path=/; SameSite=Lax; Max-Age=0`,
+            },
+        });
+    })
 ];

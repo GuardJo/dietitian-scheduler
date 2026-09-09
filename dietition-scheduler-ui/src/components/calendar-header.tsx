@@ -1,7 +1,11 @@
 import {ChevronDown, Menu} from "lucide-react";
 import {useState} from "react";
+import {useMutation} from "@tanstack/react-query";
+import {authService} from "@/services/auth-service";
+import {useRouter} from "next/navigation";
 
 export default function CalendarHeader() {
+    const router = useRouter()
     const currentYear = new Date().getFullYear()
     const currentMonth = new Date().getMonth() + 1
 
@@ -12,12 +16,20 @@ export default function CalendarHeader() {
     const yearOptions = Array.from({length: 7}, (_, index) => currentYear - 3 + index)
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
 
+    const {mutate: logout} = useMutation({
+        mutationKey: ['logout'],
+        mutationFn: () => authService.logout(),
+        onSuccess: () => {
+            router.replace('/login')
+        }
+    })
+
     const toggleMenu = (menu: 'year' | 'month') =>
         setOpenMenu((current) => current === menu ? null : menu)
 
     const onLogout = () => {
-        // TODO API 연동
         console.log('logout clicked')
+        logout()
     }
 
     return (
