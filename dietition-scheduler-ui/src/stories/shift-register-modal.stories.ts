@@ -16,6 +16,6 @@ export const Default: Story = {
         baseYear: 2026,
         baseMonth: 9,
         isOpen: true,
-        setIsOpen: action('Change isOepn')
+        setIsOpen: action('Change isOpen')
     }
 };
