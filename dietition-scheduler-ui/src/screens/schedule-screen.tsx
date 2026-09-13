@@ -8,6 +8,8 @@ import {MonthData, Shift, ShiftColors} from "@/lib/models";
 import {useQuery} from "@tanstack/react-query";
 import {scheduleService} from "@/services/schedule-service";
 import {useState} from "react";
+import {Plus} from "lucide-react";
+import ShiftRegisterModal from "@/components/shift-register-modal";
 
 
 export default function ScheduleScreen() {
@@ -28,6 +30,7 @@ export default function ScheduleScreen() {
 
     const [selectedYear, setSelectedYear] = useState(currentYear);
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     const {data: scheduleData = defaultData} = useQuery({
         queryFn: () => scheduleService.getSchedules(selectedYear, selectedMonth),
@@ -52,6 +55,11 @@ export default function ScheduleScreen() {
                 <ScheduleCountSection totalShifts={scheduleData.shiftCount}/>
                 <ShiftLegendSection colors={shiftColors} onColorChange={handleChangeColors}/>
                 <CalendarGrid monthData={scheduleData} colors={shiftColors}/>
+                <button type="button" onClick={() => setIsAddModalOpen(true)} aria-label="Add shift"
+                        className="fixed bottom-18 right-3 flex h-12 w-12 items-center justify-center rounded-[18px] bg-primary text-primary-foreground shadow-lg">
+                    <Plus className="h-6 w-6"/></button>
+                <ShiftRegisterModal baseYear={selectedYear} baseMonth={selectedMonth} isOpen={isAddModalOpen}
+                                    setIsOpen={setIsAddModalOpen}/>
             </div>
         </>
     )
