@@ -1,10 +1,12 @@
+import {Shift, ShiftColors} from "@/lib/models";
+
 export default function ShiftLegendSection({colors, onColorChange}: ShiftLegendSectionProps) {
     const labels: Record<Shift, string> = {
         a: '05:30~15:00',
         c: '08:30~18:00',
         b: '10:00~19:30'
     }
-    
+
     return (
         <section className="rounded-[14px] border-2 border-border bg-card px-5 py-4">
             <h2 className="text-[15px] font-medium tracking-wide text-muted-foreground">SHIFT TYPES</h2>
