@@ -95,5 +95,21 @@ export const handlers = [
         return HttpResponse.json(data, {
             status: 200
         });
+    }),
+    http.post("*/api/schedules", async ({request}) => {
+        const formData = await request.formData();
+        const year = formData.get("year");
+        const month = formData.get("month");
+        const file = formData.get("file");
+
+        if (file instanceof File) {
+            console.log(`file: ${file.name} (${file.size} bytes)`);
+        }
+
+        console.log(`year: ${year}, month: ${month}`);
+
+        return HttpResponse.json("successes", {
+            status: 200
+        });
     })
 ];

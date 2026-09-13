@@ -1,14 +1,34 @@
 import {useState} from "react";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {scheduleService} from "@/services/schedule-service";
 
 export default function ShiftRegisterModal({baseYear, baseMonth, isOpen, setIsOpen}: ShiftRegisterModalProps) {
     const monthOptions = Array.from({length: 12}, (_, index) => index + 1);
     const yearOptions = Array.from({length: 7}, (_, index) => baseYear - 3 + index);
-
+    const queryClient = useQueryClient();
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [selectedYear, setSelectedYear] = useState(baseYear);
+    const [selectedMonth, setSelectedMonth] = useState(baseMonth);
+
+    const {mutate: uploadScheduleMutate} = useMutation({
+        mutationKey: ['uploadSchedule', selectedYear, selectedMonth],
+        mutationFn: async () => await scheduleService.uploadSchedule(selectedYear, selectedMonth, uploadedFile!),
+        onSuccess: () => {
+            console.log('schedule uploaded successfully');
+            queryClient.invalidateQueries({queryKey: ['schedules', selectedYear, selectedMonth]});
+            setIsOpen(false);
+            setUploadedFile(null);
+            setSelectedYear(baseYear);
+            setSelectedMonth(baseMonth);
+        },
+        onError: (error) => {
+            console.error('Error uploading schedule:', error);
+        }
+    })
 
     const uploadSchedule = () => {
-        // TODO 기능 구현 예정
-        console.log(`upload schedule, year ${baseYear}, month ${baseMonth}, file ${uploadedFile?.name}`);
+        uploadScheduleMutate();
+        console.log(`uploaded schedule, year ${selectedYear}, month ${selectedMonth}, file ${uploadedFile?.name}`);
     }
 
     return (
@@ -28,11 +48,13 @@ export default function ShiftRegisterModal({baseYear, baseMonth, isOpen, setIsOp
                     </div>
                     <div className="mt-5 grid grid-cols-2 gap-3">
                         <label className="flex flex-col gap-1.5 text-[13px] font-medium">연도<select
-                            defaultValue={baseYear}
+                            value={selectedYear}
+                            onChange={(event) => setSelectedYear(Number(event.target.value))}
                             className="h-10 rounded-lg border-2 border-input bg-input px-2 text-[15px] outline-none">{yearOptions.map((year) =>
                             <option key={year} value={year}>{year}년</option>)}</select></label>
                         <label className="flex flex-col gap-1.5 text-[13px] font-medium">월<select
-                            defaultValue={baseMonth}
+                            value={selectedMonth}
+                            onChange={(event) => setSelectedMonth(Number(event.target.value))}
                             className="h-10 rounded-lg border-2 border-input bg-input px-2 text-[15px] outline-none">{monthOptions.map((month) =>
                             <option key={month} value={month}>{month}월</option>)}</select></label>
                     </div>

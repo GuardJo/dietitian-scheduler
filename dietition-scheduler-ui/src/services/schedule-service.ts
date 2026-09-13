@@ -11,5 +11,13 @@ export const scheduleService = {
     },
     getShiftColors(): Promise<ShiftColors> {
         return http.get(`/api/schedules/shifts/colors`);
+    },
+    uploadSchedule(year: number, month: number, file: File): Promise<string> {
+        const formData = new FormData();
+        formData.append("year", year.toString());
+        formData.append("month", month.toString());
+        formData.append("file", file);
+        
+        return http.post("/api/schedules", formData);
     }
 };

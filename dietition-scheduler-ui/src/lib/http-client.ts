@@ -26,8 +26,9 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
 async function request<TResponse>(path: string, options: RequestOptions = {}): Promise<TResponse> {
     const {body, headers, ...rest} = options;
 
+    const isFormData = body instanceof FormData;
     const mergedHeaders = new Headers(headers);
-    if (body !== undefined) {
+    if (body !== undefined && !isFormData) {
         mergedHeaders.set("Content-Type", "application/json");
     }
 
@@ -35,7 +36,7 @@ async function request<TResponse>(path: string, options: RequestOptions = {}): P
         credentials: "include",
         ...rest,
         headers: mergedHeaders,
-        body: body === undefined ? undefined : JSON.stringify(body),
+        body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
     });
 
     const isJson = response.headers.get("Content-Type")?.includes("application/json");
