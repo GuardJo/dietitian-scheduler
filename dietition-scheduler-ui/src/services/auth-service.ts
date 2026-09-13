@@ -26,4 +26,7 @@ export const authService = {
     login(payload: LoginRequest): Promise<LoginResponse> {
         return http.post<LoginResponse>("/api/auth/login", payload);
     },
+    logout(): Promise<void> {
+        return http.post("/api/auth/logout");
+    },
 };

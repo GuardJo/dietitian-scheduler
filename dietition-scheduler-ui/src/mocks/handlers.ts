@@ -1,6 +1,7 @@
 import {http, HttpResponse} from "msw";
 
 import type {LoginRequest, LoginResponse} from "@/services/auth-service";
+import {MonthData, ShiftColors} from "@/lib/models";
 
 /*
 로컬 개발용 msw 핸들러
@@ -58,4 +59,41 @@ export const handlers = [
             },
         });
     }),
+    http.post("*/api/auth/logout", async () => {
+        return new HttpResponse(null, {
+            status: 204,
+            headers: {
+                "Set-Cookie": `${AUTH_COOKIE}=; Path=/; SameSite=Lax; Max-Age=0`,
+            },
+        });
+    }),
+    http.get("*/api/schedules", async ({request}) => {
+        const url = new URL(request.url);
+        const params = new URLSearchParams(url.search);
+        const month = params.get("month");
+        const year = params.get("year");
+
+        const data: MonthData = {
+            year: Number(year),
+            month: Number(month),
+            label: `${month} ${year}`,
+            shiftCount: 4,
+            shifts: {4: 'a', 5: 'c', 6: 'b', 10: 'a'}
+        }
+
+        return HttpResponse.json(data, {
+            status: 200
+        });
+    }),
+    http.get("*/api/schedules/shifts/colors", async () => {
+        const data: ShiftColors = {
+            a: '#2563EB',
+            b: '#F59E0B',
+            c: '#8B5CF6'
+        };
+
+        return HttpResponse.json(data, {
+            status: 200
+        });
+    })
 ];
