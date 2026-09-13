@@ -7,15 +7,16 @@ import CalendarGrid from "@/components/calendar-grid";
 import {MonthData, Shift, ShiftColors} from "@/lib/models";
 import {useQuery} from "@tanstack/react-query";
 import {scheduleService} from "@/services/schedule-service";
+import {useState} from "react";
 
 
 export default function ScheduleScreen() {
-    const year = new Date().getFullYear();
-    const month = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
     const defaultData: MonthData = {
-        year,
-        month,
-        label: `${month} ${year}`,
+        year: currentYear,
+        month: currentMonth,
+        label: `${currentMonth} ${currentYear}`,
         shiftCount: 0,
         shifts: {}
     };
@@ -25,9 +26,12 @@ export default function ScheduleScreen() {
         c: '#626466'
     }
 
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+
     const {data: scheduleData = defaultData} = useQuery({
-        queryFn: () => scheduleService.getSchedules(year, month),
-        queryKey: ['schedules', year, month],
+        queryFn: () => scheduleService.getSchedules(selectedYear, selectedMonth),
+        queryKey: ['schedules', selectedYear, selectedMonth],
     });
 
     const {data: shiftColors = defaultColors} = useQuery({
@@ -42,7 +46,8 @@ export default function ScheduleScreen() {
 
     return (
         <>
-            <CalendarHeader/>
+            <CalendarHeader selectedYear={selectedYear} selectedMonthNumber={selectedMonth}
+                            onYearChange={setSelectedYear} onMonthChange={setSelectedMonth}/>
             <div className="flex flex-col gap-3 px-4 pb-36 pt-4">
                 <ScheduleCountSection totalShifts={scheduleData.shiftCount}/>
                 <ShiftLegendSection colors={shiftColors} onColorChange={handleChangeColors}/>

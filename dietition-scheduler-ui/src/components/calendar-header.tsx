@@ -6,14 +6,16 @@ import {useMutation} from "@tanstack/react-query";
 import {authService} from "@/services/auth-service";
 import {useRouter} from "next/navigation";
 
-export default function CalendarHeader() {
+export default function CalendarHeader({
+                                           selectedYear,
+                                           selectedMonthNumber,
+                                           onYearChange,
+                                           onMonthChange
+                                       }: CalendarHeaderProps) {
     const router = useRouter()
     const currentYear = new Date().getFullYear()
-    const currentMonth = new Date().getMonth() + 1
 
-    const [selectedYear, setSelectedYear] = useState(currentYear.valueOf())
     const [openMenu, setOpenMenu] = useState<'year' | 'month' | null>(null)
-    const [selectedMonthNumber, setSelectedMonthNumber] = useState(currentMonth.valueOf())
     const monthOptions = Array.from({length: 12}, (_, index) => index + 1)
     const yearOptions = Array.from({length: 7}, (_, index) => currentYear - 3 + index)
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
@@ -51,7 +53,7 @@ export default function CalendarHeader() {
                         {monthOptions.map((month) => <button key={month} type="button" role="option"
                                                              aria-selected={selectedMonthNumber === month}
                                                              onClick={() => {
-                                                                 setSelectedMonthNumber(month);
+                                                                 onMonthChange(month);
                                                                  setOpenMenu(null)
                                                              }}
                                                              className={`rounded-lg px-2 py-2 text-[14px] ${selectedMonthNumber === month ? 'bg-primary/10 font-semibold text-primary' : 'hover:bg-muted'}`}>{month}월</button>)}
@@ -69,7 +71,7 @@ export default function CalendarHeader() {
                         role="listbox" aria-label="Available years">
                         {yearOptions.map((year) => <button key={year} type="button" role="option"
                                                            aria-selected={selectedYear === year} onClick={() => {
-                            setSelectedYear(year);
+                            onYearChange(year);
                             setOpenMenu(null)
                         }}
                                                            className={`block w-full rounded-lg px-3 py-2 text-left text-[14px] ${selectedYear === year ? 'bg-primary/10 font-semibold text-primary' : 'hover:bg-muted'}`}>{year}년</button>)}
@@ -90,4 +92,11 @@ export default function CalendarHeader() {
             </div>
         </header>
     )
+}
+
+interface CalendarHeaderProps {
+    selectedYear: number;
+    selectedMonthNumber: number;
+    onYearChange: (year: number) => void;
+    onMonthChange: (month: number) => void;
 }
