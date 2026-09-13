@@ -21,9 +21,9 @@ export default function ScheduleScreen() {
         shifts: {}
     };
     const defaultColors: ShiftColors = {
-        a: '#0867c9',
-        b: '#a9c4ff',
-        c: '#626466'
+        a: '#2563EB',
+        b: '#F59E0B',
+        c: '#8B5CF6'
     }
 
     const [selectedYear, setSelectedYear] = useState(currentYear);

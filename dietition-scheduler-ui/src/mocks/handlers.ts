@@ -77,7 +77,7 @@ export const handlers = [
             year: Number(year),
             month: Number(month),
             label: `${month} ${year}`,
-            shiftCount: 22,
+            shiftCount: 4,
             shifts: {4: 'a', 5: 'c', 6: 'b', 10: 'a'}
         }
 
@@ -87,9 +87,9 @@ export const handlers = [
     }),
     http.get("*/api/schedules/shifts/colors", async () => {
         const data: ShiftColors = {
-            a: '#0867c9',
-            b: '#a9c4ff',
-            c: '#626466'
+            a: '#2563EB',
+            b: '#F59E0B',
+            c: '#8B5CF6'
         };
 
         return HttpResponse.json(data, {

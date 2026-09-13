@@ -3,10 +3,10 @@ import InfoSection from "@/components/info-section";
 export default function ScheduleCountSection({totalShifts = 0}: ScheduleCountProps) {
     return (
         <InfoSection>
-            <h2 className="text-[15px] font-medium tracking-wide text-muted-foreground">THIS MONTH</h2>
+            <h2 className="text-[15px] font-medium tracking-wide text-muted-foreground">이번 달</h2>
             <div className="mt-3 flex items-baseline gap-2"><strong
                 className="text-[52px] font-bold leading-none text-primary">{totalShifts}</strong><span
-                className="text-[17px]">Total Shifts</span></div>
+                className="text-[17px]">일 근무</span></div>
         </InfoSection>
     )
 }
