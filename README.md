@@ -143,18 +143,14 @@ Response:
 {
   "year": 2026,
   "month": 9,
-  "schedules": [
-    {
-      "date": "2026-09-01",
-      "type": "DAY",
-      "startTime": "09:00",
-      "endTime": "18:00"
-    },
-    {
-      "date": "2026-09-02",
-      "type": "OFF"
-    }
-  ]
+  "label": "2026.09",
+  "shiftCount": 4,
+  "shifts": {
+    4: "A",
+    5: "C",
+    6: "B",
+    10: "A"
+  }
 }
 ```
 
@@ -225,4 +221,18 @@ flowchart TD
     Calendar --> ChangeMonth{"다른 월 조회?"}
     ChangeMonth -->|Yes| Calendar
     ChangeMonth -->|No| End(["종료"])
+```
+
+# 도메인 구조
+
+```mermaid
+erDiagram
+    ACCOUNT {
+        bigint id PK
+        varchar username UK
+        varchar password
+        varchar name
+        datetime created_at
+        datetime updated_at
+    }
 ```
