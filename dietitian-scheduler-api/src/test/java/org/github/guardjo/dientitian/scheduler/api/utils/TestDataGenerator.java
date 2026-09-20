@@ -18,6 +18,7 @@ public class TestDataGenerator {
         return AccountEntity.builder()
                 .id(id)
                 .username(username)
+                .name(name)
                 .password(password)
                 .build();
     }
