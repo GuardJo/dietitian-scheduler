@@ -3,6 +3,7 @@ package org.github.guardjo.dientitian.scheduler.api.jwt;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
@@ -19,12 +20,14 @@ import java.io.IOException;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     private final ObjectMapper objectMapper;
 
     @Override
     public void commence(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
                          @NonNull AuthenticationException authException) throws IOException {
+        log.error("Unauthorized error: {}", authException.getMessage(), authException);
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
