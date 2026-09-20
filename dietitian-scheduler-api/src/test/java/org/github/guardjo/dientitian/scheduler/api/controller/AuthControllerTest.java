@@ -79,6 +79,12 @@ class AuthControllerTest {
                         containsString(JwtConstant.ACCESS_TOKEN_COOKIE_NAME + "=access-token"))))
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(
                         containsString(JwtConstant.REFRESH_TOKEN_COOKIE_NAME + "=refresh-token"))))
+                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(allOf(
+                        containsString(JwtConstant.ACCESS_TOKEN_COOKIE_NAME + "="),
+                        containsString("Path=" + JwtConstant.ACCESS_TOKEN_COOKIE_PATH)))))
+                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(allOf(
+                        containsString(JwtConstant.REFRESH_TOKEN_COOKIE_NAME + "="),
+                        containsString("Path=" + JwtConstant.REFRESH_TOKEN_COOKIE_PATH)))))
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(containsString("HttpOnly"))))
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(containsString("SameSite=Strict"))))
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(containsString("Max-Age=1800"))))

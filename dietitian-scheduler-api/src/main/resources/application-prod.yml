@@ -4,3 +4,8 @@ spring:
     url: ${APP_DB_URL}
     username: ${APP_DB_USERNAME}
     password: ${APP_DB_PASSWORD}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration-seconds: 1800
+  refresh-token-expiration-seconds: 604800

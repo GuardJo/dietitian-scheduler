@@ -41,19 +41,19 @@ public class AuthController implements AuthApiDocs {
         TokenPair tokenPair = authService.login(loginRequest.username(), loginRequest.password());
 
         response.addHeader(HttpHeaders.SET_COOKIE,
-                buildCookie(JwtConstant.ACCESS_TOKEN_COOKIE_NAME, tokenPair.accessToken(), jwtProperties.accessTokenExpirationSeconds()).toString());
+                buildCookie(JwtConstant.ACCESS_TOKEN_COOKIE_NAME, tokenPair.accessToken(), JwtConstant.ACCESS_TOKEN_COOKIE_PATH, jwtProperties.accessTokenExpirationSeconds()).toString());
         response.addHeader(HttpHeaders.SET_COOKIE,
-                buildCookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, tokenPair.refreshToken(), jwtProperties.refreshTokenExpirationSeconds()).toString());
+                buildCookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, tokenPair.refreshToken(), JwtConstant.REFRESH_TOKEN_COOKIE_PATH, jwtProperties.refreshTokenExpirationSeconds()).toString());
 
         return BaseResponse.of(HttpStatus.OK, "Success");
     }
 
-    private ResponseCookie buildCookie(String name, String value, long maxAgeSeconds) {
+    private ResponseCookie buildCookie(String name, String value, String path, long maxAgeSeconds) {
         return ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(environment.matchesProfiles(PROD_PROFILE))
                 .sameSite("Strict")
-                .path("/")
+                .path(path)
                 .maxAge(maxAgeSeconds)
                 .build();
     }

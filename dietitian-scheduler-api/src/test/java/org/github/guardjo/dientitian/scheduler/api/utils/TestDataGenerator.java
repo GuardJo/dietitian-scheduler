@@ -13,4 +13,12 @@ public class TestDataGenerator {
                 .password(password)
                 .build();
     }
+
+    public static AccountEntity accountEntity(long id, String username, String name, String password) {
+        return AccountEntity.builder()
+                .id(id)
+                .username(username)
+                .password(password)
+                .build();
+    }
 }

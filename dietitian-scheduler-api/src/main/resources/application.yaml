@@ -22,6 +22,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 jwt:
-  secret: ${JWT_SECRET:change-this-secret-to-a-long-random-value-in-production}
+  secret: change-this-secret-to-a-long-random-value-in-production
   access-token-expiration-seconds: 1800
   refresh-token-expiration-seconds: 604800

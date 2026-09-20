@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -12,7 +13,10 @@ import java.time.Instant;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class JwtUtil {
+    private static final String TOKEN_TYPE_CLAIM = "type";
+
     private final SecretKey secretKey;
     private final long accessTokenExpirationSeconds;
     private final long refreshTokenExpirationSeconds;
@@ -32,7 +36,7 @@ public class JwtUtil {
      * @return JWT 인증 토큰
      */
     public String generateAccessToken(Long id) {
-        return generateToken(id, accessTokenExpirationSeconds);
+        return generateToken(id, TokenType.ACCESS, accessTokenExpirationSeconds);
     }
 
     /**
@@ -44,7 +48,7 @@ public class JwtUtil {
      * @return JWT 리프레시 토큰
      */
     public String generateRefreshToken(Long id) {
-        return generateToken(id, refreshTokenExpirationSeconds);
+        return generateToken(id, TokenType.REFRESH, refreshTokenExpirationSeconds);
     }
 
     /**
@@ -58,25 +62,29 @@ public class JwtUtil {
     }
 
     /**
-     * 주어진 JWT 토큰이 유효한지 확인한다.
+     * 주어진 JWT 토큰이 유효하고, 기대하는 토큰 종류인지 확인한다.
      *
-     * @param token JWT 토큰
+     * @param token        JWT 토큰
+     * @param expectedType 기대하는 토큰 종류
      * @return 유효 여부
      */
-    public boolean isValid(String token) {
+    public boolean isValid(String token, TokenType expectedType) {
         try {
-            parseClaims(token);
-            return true;
+            String type = parseClaims(token).get(TOKEN_TYPE_CLAIM, String.class);
+
+            return expectedType.name().equals(type);
         } catch (JwtException | IllegalArgumentException e) {
+            log.warn("Invalid JWT token: {}, cause: {}", token, e.getMessage());
             return false;
         }
     }
 
-    private String generateToken(Long id, long expirationSeconds) {
+    private String generateToken(Long id, TokenType type, long expirationSeconds) {
         Instant now = Instant.now();
 
         return Jwts.builder()
                 .subject(String.valueOf(id))
+                .claim(TOKEN_TYPE_CLAIM, type.name())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(expirationSeconds)))
                 .signWith(secretKey)
