@@ -23,8 +23,6 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
-
     private final JwtUtil jwtUtil;
 
     @Override
@@ -53,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         return Arrays.stream(cookies)
-                .filter(cookie -> ACCESS_TOKEN_COOKIE_NAME.equals(cookie.getName()))
+                .filter(cookie -> JwtConstant.ACCESS_TOKEN_COOKIE_NAME.equals(cookie.getName()))
                 .map(Cookie::getValue)
                 .findFirst()
                 .orElse(null);
