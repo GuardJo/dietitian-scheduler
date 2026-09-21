@@ -118,6 +118,23 @@ class ScheduleControllerTest {
         verifyNoInteractions(scheduleService);
     }
 
+    @DisplayName("POST: /api/schedules -> 엑셀 파일이 아닐 때")
+    @Test
+    void test_upload_schedule_not_excel_file() throws Exception {
+        MockMultipartFile textFile = new MockMultipartFile("file", "schedule.txt", "text/plain", new byte[]{1, 2, 3});
+
+        mvc.perform(multipart(SCHEDULE_URL)
+                        .file(textFile)
+                        .param("year", "2026")
+                        .param("month", "9")
+                        .with(authentication(authenticated()))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(scheduleService);
+    }
+
     private Authentication authenticated() {
         return new UsernamePasswordAuthenticationToken(USER_DETAILS, null, USER_DETAILS.getAuthorities());
     }
