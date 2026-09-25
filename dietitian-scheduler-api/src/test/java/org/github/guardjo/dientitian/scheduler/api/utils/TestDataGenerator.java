@@ -1,6 +1,9 @@
 package org.github.guardjo.dientitian.scheduler.api.utils;
 
 import org.github.guardjo.dientitian.scheduler.api.model.entity.AccountEntity;
+import org.github.guardjo.dientitian.scheduler.api.model.entity.ShiftTypeEntity;
+
+import java.time.LocalTime;
 
 public class TestDataGenerator {
     private TestDataGenerator() {
@@ -20,6 +23,15 @@ public class TestDataGenerator {
                 .username(username)
                 .name(name)
                 .password(password)
+                .build();
+    }
+
+    public static ShiftTypeEntity shiftTypeEntity(String label, LocalTime startTime, LocalTime endTime, String color) {
+        return ShiftTypeEntity.builder()
+                .label(label)
+                .startTime(startTime)
+                .endTime(endTime)
+                .color(color)
                 .build();
     }
 }

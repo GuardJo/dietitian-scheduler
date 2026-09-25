@@ -26,10 +26,10 @@ comment on sequence shift_type_seq is '근무 타입 식별키 시퀀스';
 
 create table shift_type (
                             id bigint primary key default nextval('shift_type_seq'),
-                            label varchar(20) not null,
+                            label varchar(20) not null unique,
                             start_time time(0) not null,
                             end_time time(0) not null,
-                            color varchar(7) not null not null check ( color ~ '^#[0-9A-F]{6}$' ),
+                            color varchar(7) not null check ( color ~ '^#[0-9A-F]{6}$' ),
     created_at timestamp not null default now(),
     updated_at timestamp not null default now()
 );
