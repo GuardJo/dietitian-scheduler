@@ -17,4 +17,10 @@ public class GlobalExceptionHandler {
     public BaseResponse<String> handleBadCredentials(Exception e) {
         return BaseResponse.of(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
+
+    @ExceptionHandler(ExcelFileReadException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public BaseResponse<String> handleBadRequest(Exception e) {
+        return BaseResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
 }

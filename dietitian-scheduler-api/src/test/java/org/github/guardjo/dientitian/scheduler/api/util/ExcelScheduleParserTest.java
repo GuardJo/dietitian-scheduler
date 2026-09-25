@@ -3,6 +3,7 @@ package org.github.guardjo.dientitian.scheduler.api.util;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.github.guardjo.dientitian.scheduler.api.exception.ExcelFileReadException;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.DailyShift;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -129,7 +130,7 @@ class ExcelScheduleParserTest {
         given(file.getInputStream()).willThrow(new IOException("읽기 실패"));
 
         assertThatThrownBy(() -> excelScheduleParser.parse(file, "김아무개"))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(ExcelFileReadException.class)
                 .hasMessage("스케줄 파일을 읽어오는데 실패하였습니다.")
                 .hasCauseInstanceOf(IOException.class);
     }
