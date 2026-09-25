@@ -13,6 +13,7 @@ import org.github.guardjo.dientitian.scheduler.api.repository.ShiftTypeEntityRep
 import org.github.guardjo.dientitian.scheduler.api.util.ExcelScheduleParser;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -28,6 +29,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final ShiftTypeEntityRepository shiftTypeRepository;
     private final ScheduleEntityRepository scheduleRepository;
 
+    @Transactional
     @Override
     public void saveShiftSchedules(AccountUserDetails userDetails, int year, int month, MultipartFile shiftScheduleFile) {
         log.info("Save shift schedule, username: {}, year: {}, month: {}", userDetails.getUsername(), year, month);
@@ -38,6 +40,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         AccountEntity account = accountRepository.getReferenceById(userDetails.id());
+
+        // 엑셀 데이터 업로드의 경우 해달 월 데이터가 이미 있을 경우, 초기화 후 저장하도록 한다.
+        clearSchedules(account, year, month);
 
         List<ScheduleEntity> scheduleEntities = parseExcel(shiftScheduleFile, userDetails.name(), account, year, month);
         scheduleRepository.saveAll(scheduleEntities);
@@ -63,5 +68,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         return shiftTypes.stream()
                 .filter(type -> type.getLabel().equals(shiftType))
                 .findFirst().orElse(null);
+    }
+
+    private void clearSchedules(AccountEntity account, int year, int month) {
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.plusMonths(1).minusDays(1);
+
+        log.info("Clear schedules, account: {}, startDate: {}, endDate: {}", account.getUsername(), startDate, endDate);
+        int clearedCount = scheduleRepository.deleteAllByWorkDateBetweenAndAccount_Id(startDate, endDate, account.getId());
+        log.info("Schedules cleared, clearedCount: {}", clearedCount);
     }
 }

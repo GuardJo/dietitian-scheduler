@@ -33,12 +33,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class ScheduleServiceTest {
     private static final AccountUserDetails USER_DETAILS = new AccountUserDetails(1L, "tester", "테스터");
     private static final int YEAR = 2026;
     private static final int MONTH = 9;
+    private static final LocalDate START_DATE = LocalDate.of(YEAR, MONTH, 1);
+    private static final LocalDate END_DATE = START_DATE.plusMonths(1).minusDays(1);
     private static final MultipartFile EXCEL_FILE = new MockMultipartFile("file", "schedule.xlsx",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", new byte[]{1, 2, 3});
 
@@ -69,6 +72,7 @@ class ScheduleServiceTest {
 
         given(accountRepository.existsById(eq(USER_DETAILS.id()))).willReturn(true);
         given(accountRepository.getReferenceById(eq(USER_DETAILS.id()))).willReturn(account);
+        given(scheduleRepository.deleteAllByWorkDateBetweenAndAccount_Id(eq(START_DATE), eq(END_DATE), eq(account.getId()))).willReturn(0);
         given(shiftTypeRepository.findAll()).willReturn(List.of(dayShift, nightShift));
         given(excelScheduleParser.parse(eq(EXCEL_FILE), eq(account.getName()))).willReturn(List.of(
                 new DailyShift(1, "C"),
@@ -81,6 +85,7 @@ class ScheduleServiceTest {
 
         then(accountRepository).should().existsById(eq(USER_DETAILS.id()));
         then(accountRepository).should().getReferenceById(eq(USER_DETAILS.id()));
+        then(scheduleRepository).should().deleteAllByWorkDateBetweenAndAccount_Id(eq(START_DATE), eq(END_DATE), eq(account.getId()));
         then(shiftTypeRepository).should().findAll();
         then(excelScheduleParser).should().parse(eq(EXCEL_FILE), eq(account.getName()));
         then(scheduleRepository).should().saveAll(scheduleEntitiesCaptor.capture());
@@ -115,6 +120,7 @@ class ScheduleServiceTest {
 
         given(accountRepository.existsById(eq(USER_DETAILS.id()))).willReturn(true);
         given(accountRepository.getReferenceById(eq(USER_DETAILS.id()))).willReturn(account);
+        given(scheduleRepository.deleteAllByWorkDateBetweenAndAccount_Id(eq(START_DATE), eq(END_DATE), eq(account.getId()))).willReturn(0);
         given(excelScheduleParser.parse(eq(EXCEL_FILE), eq(account.getName())))
                 .willThrow(new IllegalArgumentException("사용자의 스케줄 정보가 확인되지 않습니다."));
 
@@ -124,8 +130,9 @@ class ScheduleServiceTest {
 
         then(accountRepository).should().existsById(eq(USER_DETAILS.id()));
         then(accountRepository).should().getReferenceById(eq(USER_DETAILS.id()));
+        then(scheduleRepository).should().deleteAllByWorkDateBetweenAndAccount_Id(eq(START_DATE), eq(END_DATE), eq(account.getId()));
         then(excelScheduleParser).should().parse(eq(EXCEL_FILE), eq(account.getName()));
-        verifyNoInteractions(scheduleRepository);
+        verifyNoMoreInteractions(scheduleRepository);
     }
 
     @DisplayName("스케줄 데이터를 저장하는 중 오류가 발생하면 예외가 발생한다.")
@@ -136,6 +143,7 @@ class ScheduleServiceTest {
 
         given(accountRepository.existsById(eq(USER_DETAILS.id()))).willReturn(true);
         given(accountRepository.getReferenceById(eq(USER_DETAILS.id()))).willReturn(account);
+        given(scheduleRepository.deleteAllByWorkDateBetweenAndAccount_Id(eq(START_DATE), eq(END_DATE), eq(account.getId()))).willReturn(0);
         given(shiftTypeRepository.findAll()).willReturn(List.of(dayShift));
         given(excelScheduleParser.parse(eq(EXCEL_FILE), eq(account.getName()))).willReturn(List.of(new DailyShift(1, "C")));
         given(scheduleRepository.saveAll(anyList())).willThrow(new DataIntegrityViolationException("저장 실패"));
@@ -146,6 +154,7 @@ class ScheduleServiceTest {
 
         then(accountRepository).should().existsById(eq(USER_DETAILS.id()));
         then(accountRepository).should().getReferenceById(eq(USER_DETAILS.id()));
+        then(scheduleRepository).should().deleteAllByWorkDateBetweenAndAccount_Id(eq(START_DATE), eq(END_DATE), eq(account.getId()));
         then(shiftTypeRepository).should().findAll();
         then(excelScheduleParser).should().parse(eq(EXCEL_FILE), eq(account.getName()));
         then(scheduleRepository).should().saveAll(anyList());
