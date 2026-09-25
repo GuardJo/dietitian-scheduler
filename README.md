@@ -230,9 +230,32 @@ erDiagram
     ACCOUNT {
         bigint id PK
         varchar username UK
-        varchar password
-        varchar name
-        datetime created_at
-        datetime updated_at
+        varchar password "not null"
+        varchar name "not null"
+        datetime created_at "not null"
+        datetime updated_at "not null"
     }
+    
+    SHIFT_TYPE {
+        bigint id PK
+        varchar label UK
+        time start_time "not null"
+        time end_time "not null"
+        varchar color "not null (16진수 색상 정규식 적용)"
+        datetime created_at "not null"
+        datetime updated_at "not null"
+    }
+
+    SCHEDULE {
+        bigint id PK
+        bigint account_id FK "ACCOUNT 테이블"
+        date work_date "not null (account_id와 UK)"
+        bigint shift_type_id FK "SHIFT_TYPE 테이블"
+        varchar memo
+        datetime created_at "not null"
+        datetime updated_at "not null"
+    }
+
+    ACCOUNT ||--o{ SCHEDULE : account_id
+    SHIFT_TYPE ||--o{ SCHEDULE : schedule_type_id
 ```
