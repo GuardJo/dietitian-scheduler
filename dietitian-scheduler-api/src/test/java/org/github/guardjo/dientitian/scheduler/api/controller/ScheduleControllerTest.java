@@ -1,5 +1,6 @@
 package org.github.guardjo.dientitian.scheduler.api.controller;
 
+import org.github.guardjo.dientitian.scheduler.api.exception.ExcelFileReadException;
 import org.github.guardjo.dientitian.scheduler.api.jwt.JwtUtil;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
@@ -24,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -72,7 +74,7 @@ class ScheduleControllerTest {
 
         assertThat(toBaseResponse(result)).isEqualTo(expected);
 
-        then(scheduleService).should().saveShiftSchedules(eq(USER_DETAILS.id()), eq(year), eq(month), eq(file));
+        then(scheduleService).should().saveShiftSchedules(eq(USER_DETAILS), eq(year), eq(month), eq(file));
     }
 
     @DisplayName("POST: /api/schedules -> 월 범위가 올바르지 않을 때")
@@ -133,6 +135,30 @@ class ScheduleControllerTest {
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(scheduleService);
+    }
+
+    @DisplayName("POST: /api/schedules -> 파일 읽기 작업 실패 시")
+    @Test
+    void test_upload_schedule_file_read_exception() throws Exception {
+        int year = 2026;
+        int month = 9;
+        MockMultipartFile excelFile = excelFile();
+        String exceptionMessage = "엑셀 파일 조회 실패";
+        willThrow(new ExcelFileReadException(exceptionMessage, new Throwable())).given(scheduleService).saveShiftSchedules(eq(USER_DETAILS), eq(year), eq(month), eq(excelFile));
+
+        MvcResult response = mvc.perform(multipart(SCHEDULE_URL)
+                        .file(excelFile)
+                        .param("year", String.valueOf(year))
+                        .param("month", String.valueOf(month))
+                        .with(authentication(authenticated()))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andReturn();
+
+        BaseResponse<String> actual = toBaseResponse(response);
+        assertThat(actual.status()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        assertThat(actual.data()).isEqualTo(exceptionMessage);
     }
 
     private Authentication authenticated() {

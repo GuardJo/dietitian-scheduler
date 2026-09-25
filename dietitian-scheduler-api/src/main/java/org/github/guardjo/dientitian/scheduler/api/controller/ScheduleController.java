@@ -27,7 +27,7 @@ public class ScheduleController implements ScheduleApiDocs {
     public BaseResponse<String> uploadSchedule(@AuthenticationPrincipal AccountUserDetails userDetails, @ModelAttribute ShiftScheduleUploadRequest request) {
         log.info("POST : /api/schedules, userId = {}, year = {}, month = {}, excelSize = {}", userDetails.id(), request.year(), request.month(), request.file().getSize());
 
-        scheduleService.saveShiftSchedules(userDetails.id(), request.year(), request.month(), request.file());
+        scheduleService.saveShiftSchedules(userDetails, request.year(), request.month(), request.file());
 
         return BaseResponse.of(HttpStatus.CREATED, "Success");
     }
