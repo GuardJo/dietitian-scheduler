@@ -20,6 +20,14 @@ spring:
         format_sql: true
         default_batch_fetch_size: 1000
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  tomcat:
+    max-part-header-size: 2KB
 
 jwt:
   secret: change-this-secret-to-a-long-random-value-in-production

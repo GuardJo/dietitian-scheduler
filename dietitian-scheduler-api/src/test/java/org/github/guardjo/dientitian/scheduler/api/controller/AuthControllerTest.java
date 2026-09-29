@@ -6,6 +6,7 @@ import org.github.guardjo.dientitian.scheduler.api.jwt.JwtUtil;
 import org.github.guardjo.dientitian.scheduler.api.jwt.TokenPair;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.LoginRequest;
+import org.github.guardjo.dientitian.scheduler.api.repository.AccountEntityRepository;
 import org.github.guardjo.dientitian.scheduler.api.service.AuthService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private JwtUtil jwtUtil;
+
+    @MockitoBean
+    private AccountEntityRepository accountEntityRepository;
 
     @DisplayName("POST: /api/auth/login -> 정상 응답")
     @Test
