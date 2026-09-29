@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ScheduleController.class)
 class ScheduleControllerTest {
     private static final String SCHEDULE_URL = "/api/schedules";
-    private static final AccountUserDetails USER_DETAILS = new AccountUserDetails(1L, "tester", "테스터");
+    private static final AccountUserDetails USER_DETAILS = new AccountUserDetails(1L, "tester", "테스터", "password");
 
     @Autowired
     private MockMvc mvc;

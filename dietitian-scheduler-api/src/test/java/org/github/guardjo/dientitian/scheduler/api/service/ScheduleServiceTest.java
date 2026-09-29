@@ -37,7 +37,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class ScheduleServiceTest {
-    private static final AccountUserDetails USER_DETAILS = new AccountUserDetails(1L, "tester", "테스터");
+    private static final AccountUserDetails USER_DETAILS = new AccountUserDetails(1L, "tester", "테스터", "password");
     private static final int YEAR = 2026;
     private static final int MONTH = 9;
     private static final LocalDate START_DATE = LocalDate.of(YEAR, MONTH, 1);

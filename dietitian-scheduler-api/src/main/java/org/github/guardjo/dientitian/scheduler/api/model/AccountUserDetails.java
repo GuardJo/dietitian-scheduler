@@ -14,10 +14,11 @@ import java.util.List;
 public record AccountUserDetails(
         Long id,
         String username,
-        String name
+        String name,
+        String encryptedPassword
 ) implements UserDetails {
     public static AccountUserDetails from(AccountEntity account) {
-        return new AccountUserDetails(account.getId(), account.getUsername(), account.getName());
+        return new AccountUserDetails(account.getId(), account.getUsername(), account.getName(), account.getPassword());
     }
 
     @Override
@@ -27,11 +28,11 @@ public record AccountUserDetails(
 
     @Override
     public String getPassword() {
-        return null;
+        return this.encryptedPassword;
     }
 
     @Override
     public String getUsername() {
-        return username;
+        return this.username;
     }
 }

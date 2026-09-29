@@ -3,6 +3,7 @@ package org.github.guardjo.dientitian.scheduler.api.jwt;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
+import org.github.guardjo.dientitian.scheduler.api.model.entity.AccountEntity;
 import org.github.guardjo.dientitian.scheduler.api.repository.AccountEntityRepository;
 import org.github.guardjo.dientitian.scheduler.api.utils.TestDataGenerator;
 import org.junit.jupiter.api.AfterEach;
@@ -52,18 +53,20 @@ class JwtAuthenticationFilterTest {
     void test_authenticate_existing_account() throws Exception {
         MockHttpServletRequest request = requestWithToken();
         MockHttpServletResponse response = new MockHttpServletResponse();
+        AccountEntity testAccount = TestDataGenerator.accountEntity(USER_ID, "tester", "테스터", "password");
 
         given(jwtUtil.isValid(eq(TOKEN), eq(TokenType.ACCESS))).willReturn(true);
         given(jwtUtil.getUserId(eq(TOKEN))).willReturn(USER_ID);
         given(accountEntityRepository.findById(eq(USER_ID)))
-                .willReturn(Optional.of(TestDataGenerator.accountEntity(USER_ID, "tester", "테스터", "password1!")));
+                .willReturn(Optional.of(testAccount));
 
         filter.doFilter(request, response, filterChain);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         assertThat(authentication).isNotNull();
-        assertThat(authentication.getPrincipal()).isEqualTo(new AccountUserDetails(USER_ID, "tester", "테스터"));
+        assertThat(authentication.getPrincipal()).isEqualTo(AccountUserDetails.from(testAccount));
+        assertThat(authentication.getCredentials()).isEqualTo(testAccount.getPassword());
         verify(filterChain).doFilter(request, response);
 
         then(jwtUtil).should().isValid(eq(TOKEN), eq(TokenType.ACCESS));

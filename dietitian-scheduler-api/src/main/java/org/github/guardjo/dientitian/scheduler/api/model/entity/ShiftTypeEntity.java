@@ -25,6 +25,6 @@ public class ShiftTypeEntity extends BaseEntity {
     @Column(nullable = false)
     private LocalTime endTime;
 
-    @Column(nullable = false, length = 7)
+    @Column(nullable = false, length = 7, check = @CheckConstraint(name = "shift_type_color_check", constraint = "color ~ '^#[0-9A-F]{6}$'"))
     private String color;
 }
