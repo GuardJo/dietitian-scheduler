@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.DailyShift;
+import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.AccountEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.ScheduleEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.ShiftTypeEntity;
@@ -48,6 +49,15 @@ public class ScheduleServiceImpl implements ScheduleService {
         scheduleRepository.saveAll(scheduleEntities);
 
         log.info("Shift schedule saved, totalSchedules: {}", scheduleEntities.size());
+    }
+
+    @Override
+    public MonthScheduleData getMonthScheduleData(AccountUserDetails userDetails, int year, int month) {
+        log.info("Get month schedule, username: {}, year: {}, month: {}", userDetails.getUsername(), year, month);
+        // TODO 기능 구현
+        log.info("Month schedule data retrieved.");
+
+        return null;
     }
 
     private List<ScheduleEntity> parseExcel(MultipartFile excelFile, String name, AccountEntity account, int year, int month) {
