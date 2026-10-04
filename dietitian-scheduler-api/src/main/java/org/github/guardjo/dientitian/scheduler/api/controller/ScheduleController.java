@@ -21,13 +21,12 @@ public class ScheduleController implements ScheduleApiDocs {
     private final ScheduleService scheduleService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
     @Override
-    public BaseResponse<String> uploadSchedule(@AuthenticationPrincipal AccountUserDetails userDetails, @ModelAttribute ShiftScheduleUploadRequest request) {
+    public void uploadSchedule(@AuthenticationPrincipal AccountUserDetails userDetails, @ModelAttribute ShiftScheduleUploadRequest request) {
         log.info("POST : /api/schedules, userId = {}, year = {}, month = {}, excelSize = {}", userDetails.id(), request.year(), request.month(), request.file().getSize());
 
         scheduleService.saveShiftSchedules(userDetails, request.year(), request.month(), request.file());
-
-        return BaseResponse.of(HttpStatus.CREATED, "Success");
     }
 
     @GetMapping

@@ -4,6 +4,7 @@ import org.github.guardjo.dientitian.scheduler.api.config.JwtConfig;
 import org.github.guardjo.dientitian.scheduler.api.jwt.JwtConstant;
 import org.github.guardjo.dientitian.scheduler.api.jwt.JwtUtil;
 import org.github.guardjo.dientitian.scheduler.api.jwt.TokenPair;
+import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.LoginRequest;
 import org.github.guardjo.dientitian.scheduler.api.repository.AccountEntityRepository;
@@ -17,7 +18,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.test.context.TestSecurityContextHolder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -48,6 +51,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class AuthControllerTest {
     private static final String LOGIN_URL = "/api/auth/login";
+    private static final String LOGOUT_URL = "/api/auth/logout";
+    private static final AccountUserDetails USER_DETAILS = new AccountUserDetails(1L, "tester", "테스터", "password");
 
     @Autowired
     private MockMvc mvc;
@@ -135,6 +140,33 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(authService);
+    }
+
+    @DisplayName("POST: /api/auth/logout -> 정상 응답")
+    @Test
+    void test_logout() throws Exception {
+        // addFilters = false 로 시큐리티 필터가 비활성화되어 있어 SecurityContext 에 직접 인증 정보를 등록
+        TestSecurityContextHolder.setAuthentication(
+                new UsernamePasswordAuthenticationToken(USER_DETAILS, null, USER_DETAILS.getAuthorities()));
+
+        mvc.perform(post(LOGOUT_URL))
+                .andDo(print())
+                .andExpect(status().isNoContent())
+                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(allOf(
+                        startsWith(JwtConstant.ACCESS_TOKEN_COOKIE_NAME + "=;"),
+                        containsString("Path=" + JwtConstant.ACCESS_TOKEN_COOKIE_PATH),
+                        containsString("Max-Age=0")))))
+                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(allOf(
+                        startsWith(JwtConstant.REFRESH_TOKEN_COOKIE_NAME + "=;"),
+                        containsString("Path=" + JwtConstant.REFRESH_TOKEN_COOKIE_PATH),
+                        containsString("Max-Age=0")))))
+                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, everyItem(allOf(
+                        containsString("HttpOnly"),
+                        containsString("SameSite=Strict"),
+                        not(containsString("Secure"))))))
+                .andReturn();
 
         verifyNoInteractions(authService);
     }
