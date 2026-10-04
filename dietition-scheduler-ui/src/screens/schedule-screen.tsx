@@ -34,7 +34,7 @@ export default function ScheduleScreen() {
 
     const {data: scheduleData = defaultData} = useQuery({
         queryFn: () => scheduleService.getSchedules(selectedYear, selectedMonth),
-        queryKey: ['schedules', selectedYear, selectedMonth],
+        queryKey: ['schedules', selectedYear, selectedMonth]
     });
 
     const {data: shiftColors = defaultColors} = useQuery({
