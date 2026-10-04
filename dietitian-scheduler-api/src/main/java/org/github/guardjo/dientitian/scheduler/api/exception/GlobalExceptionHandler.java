@@ -2,6 +2,7 @@ package org.github.guardjo.dientitian.scheduler.api.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
@@ -9,6 +10,7 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.util.stream.Collectors;
 
@@ -29,15 +31,28 @@ public class GlobalExceptionHandler {
     /**
      * Validation 어노테이션 검증 실패 시 오류 메시지들을 줄바꿈(\n)으로 이어 data에 담아 반환한다.
      * MethodArgumentNotValidException(@RequestBody, @ModelAttribute)은 BindException의 하위 클래스이므로 함께 처리된다.
+     * <hr/>
+     * HandlerMethodValidationException의 경우 spring framewokr 6.1 부터 Validation check 간 실패 시 반환하는 예외
      */
-    @ExceptionHandler(BindException.class)
+    @ExceptionHandler({
+            BindException.class,
+            HandlerMethodValidationException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public BaseResponse<String> handleValidation(BindException e) {
+    public BaseResponse<String> handleValidation(Exception e) {
         log.error("Validation Failed", e);
 
-        String errorMessage = e.getBindingResult().getAllErrors().stream()
-                .map(ObjectError::getDefaultMessage)
-                .collect(Collectors.joining("\n"));
+        String errorMessage = e.getMessage();
+
+        if (e instanceof BindException) {
+            errorMessage = ((BindException) e).getBindingResult().getAllErrors().stream()
+                    .map(ObjectError::getDefaultMessage)
+                    .collect(Collectors.joining("\n"));
+        } else if (e instanceof HandlerMethodValidationException) {
+            errorMessage = ((HandlerMethodValidationException) e).getAllErrors().stream()
+                    .map(MessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.joining("\n"));
+        }
 
         return BaseResponse.of(HttpStatus.BAD_REQUEST, errorMessage);
     }
