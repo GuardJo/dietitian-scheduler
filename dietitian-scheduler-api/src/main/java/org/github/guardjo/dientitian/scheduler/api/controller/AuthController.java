@@ -2,10 +2,12 @@ package org.github.guardjo.dientitian.scheduler.api.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.dientitian.scheduler.api.controller.docs.AuthApiDocs;
 import org.github.guardjo.dientitian.scheduler.api.jwt.JwtConstant;
 import org.github.guardjo.dientitian.scheduler.api.jwt.JwtProperties;
 import org.github.guardjo.dientitian.scheduler.api.jwt.TokenPair;
+import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.LoginRequest;
 import org.github.guardjo.dientitian.scheduler.api.service.AuthService;
@@ -13,14 +15,13 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController implements AuthApiDocs {
     private static final String PROD_PROFILE = "prod";
 
@@ -38,6 +39,7 @@ public class AuthController implements AuthApiDocs {
     @PostMapping("/login")
     @Override
     public BaseResponse<String> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        log.info("POST : /api/auth/login, username = {}, password = {}", loginRequest.username(), "*********");
         TokenPair tokenPair = authService.login(loginRequest.username(), loginRequest.password());
 
         response.addHeader(HttpHeaders.SET_COOKIE,
@@ -46,6 +48,16 @@ public class AuthController implements AuthApiDocs {
                 buildCookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, tokenPair.refreshToken(), JwtConstant.REFRESH_TOKEN_COOKIE_PATH, jwtProperties.refreshTokenExpirationSeconds()).toString());
 
         return BaseResponse.of(HttpStatus.OK, "Success");
+    }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Override
+    public void logout(@AuthenticationPrincipal AccountUserDetails userDetails, HttpServletResponse response) {
+        log.info("POST : /api/auth/logout, userId = {}", userDetails.id());
+
+        response.addHeader(HttpHeaders.SET_COOKIE, buildCookie(JwtConstant.ACCESS_TOKEN_COOKIE_NAME, "", JwtConstant.ACCESS_TOKEN_COOKIE_PATH, 0).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, buildCookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, "", JwtConstant.REFRESH_TOKEN_COOKIE_PATH, 0).toString());
     }
 
     private ResponseCookie buildCookie(String name, String value, String path, long maxAgeSeconds) {

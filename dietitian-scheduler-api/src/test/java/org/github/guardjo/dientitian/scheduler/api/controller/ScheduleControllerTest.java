@@ -65,19 +65,16 @@ class ScheduleControllerTest {
         int year = 2026;
         int month = 9;
         MockMultipartFile file = excelFile();
-        BaseResponse<String> expected = BaseResponse.of(HttpStatus.CREATED, "Success");
 
-        MvcResult result = mvc.perform(multipart(SCHEDULE_URL)
+        mvc.perform(multipart(SCHEDULE_URL)
                         .file(file)
                         .param("year", String.valueOf(year))
                         .param("month", String.valueOf(month))
                         .with(authentication(authenticated()))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
-
-        assertThat(toBaseResponse(result)).isEqualTo(expected);
 
         then(scheduleService).should().saveShiftSchedules(eq(USER_DETAILS), eq(year), eq(month), eq(file));
     }

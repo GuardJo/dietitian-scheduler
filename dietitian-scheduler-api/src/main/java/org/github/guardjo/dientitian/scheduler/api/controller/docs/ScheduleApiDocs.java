@@ -15,7 +15,7 @@ import org.github.guardjo.dientitian.scheduler.api.model.dto.ShiftScheduleUpload
 @Tag(name = "근무 스케줄 API")
 public interface ScheduleApiDocs {
     @Operation(summary = "월별 근무 스케줄 등록", description = "연도/월과 엑셀 파일을 업로드하여 월별 근무 스케줄을 등록한다.")
-    BaseResponse<String> uploadSchedule(@Parameter(hidden = true) AccountUserDetails userDetails, @Valid ShiftScheduleUploadRequest request);
+    void uploadSchedule(@Parameter(hidden = true) AccountUserDetails userDetails, @Valid ShiftScheduleUploadRequest request);
 
     @Operation(summary = "월결 근무 스케줄 조회", description = "연도/월에 해당하는 월별 근무 스케줄을 조회한다.")
     BaseResponse<MonthScheduleData> getSchedule(@Parameter(hidden = true) AccountUserDetails userDetails,
