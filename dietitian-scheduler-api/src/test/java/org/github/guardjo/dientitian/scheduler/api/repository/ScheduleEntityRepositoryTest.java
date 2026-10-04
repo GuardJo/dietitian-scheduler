@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Sort;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDate;
@@ -113,5 +114,58 @@ class ScheduleEntityRepositoryTest {
                 LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30), account.getId());
 
         assertThat(deletedCount).isZero();
+    }
+
+    @DisplayName("주어진 기간 내에 속한 사용자의 스케줄 목록을 조회한다.")
+    @Test
+    void test_findAllByAccount_IdAndWorkDateBetween() {
+        scheduleEntityRepository.saveAll(List.of(
+                TestDataGenerator.scheduleEntity(account, LocalDate.of(2026, 8, 31), shiftType),
+                TestDataGenerator.scheduleEntity(account, LocalDate.of(2026, 9, 1), shiftType),
+                TestDataGenerator.scheduleEntity(account, LocalDate.of(2026, 9, 15), shiftType),
+                TestDataGenerator.scheduleEntity(account, LocalDate.of(2026, 9, 30), shiftType),
+                TestDataGenerator.scheduleEntity(account, LocalDate.of(2026, 10, 1), shiftType),
+                TestDataGenerator.scheduleEntity(otherAccount, LocalDate.of(2026, 9, 15), shiftType)
+        ));
+
+        List<ScheduleEntity> schedules = scheduleEntityRepository.findAllByAccount_IdAndWorkDateBetween(
+                account.getId(), LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30),
+                Sort.by(Sort.Direction.ASC, "workDate"));
+
+        assertThat(schedules)
+                .allSatisfy(schedule -> assertThat(schedule.getAccount().getId()).isEqualTo(account.getId()))
+                .extracting(ScheduleEntity::getWorkDate)
+                .containsExactlyInAnyOrder(
+                        LocalDate.of(2026, 9, 1),
+                        LocalDate.of(2026, 9, 15),
+                        LocalDate.of(2026, 9, 30)
+                );
+    }
+
+    @DisplayName("사용자의 스케줄이 존재하지만 주어진 기간에 해당하지 않으면 빈 목록을 반환한다.")
+    @Test
+    void test_findAllByAccount_IdAndWorkDateBetween_out_of_range() {
+        scheduleEntityRepository.saveAll(List.of(
+                TestDataGenerator.scheduleEntity(account, LocalDate.of(2026, 8, 31), shiftType),
+                TestDataGenerator.scheduleEntity(account, LocalDate.of(2026, 10, 1), shiftType)
+        ));
+
+        List<ScheduleEntity> schedules = scheduleEntityRepository.findAllByAccount_IdAndWorkDateBetween(
+                account.getId(), LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30),
+                Sort.by(Sort.Direction.ASC, "workDate"));
+
+        assertThat(schedules).isEmpty();
+    }
+
+    @DisplayName("사용자의 스케줄이 존재하지 않으면 빈 목록을 반환한다.")
+    @Test
+    void test_findAllByAccount_IdAndWorkDateBetween_no_data() {
+        scheduleEntityRepository.save(TestDataGenerator.scheduleEntity(otherAccount, LocalDate.of(2026, 9, 15), shiftType));
+
+        List<ScheduleEntity> schedules = scheduleEntityRepository.findAllByAccount_IdAndWorkDateBetween(
+                account.getId(), LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30),
+                Sort.by(Sort.Direction.ASC, "workDate"));
+
+        assertThat(schedules).isEmpty();
     }
 }
