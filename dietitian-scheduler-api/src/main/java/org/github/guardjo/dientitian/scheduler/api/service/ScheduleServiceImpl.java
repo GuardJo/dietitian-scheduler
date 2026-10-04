@@ -71,6 +71,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         return new MonthScheduleData(year, month, String.format("%d년 %d월", year, month), shiftsData.size(), shiftsData);
     }
 
+    @Override
+    public Map<String, String> getShiftTypes() {
+        log.info("Get shift types");
+        // TODO 기능 구현
+        log.info("Shift types retrieved.");
+        return Map.of();
+    }
+
     private List<ScheduleEntity> parseExcel(MultipartFile excelFile, String name, AccountEntity account, int year, int month) {
         List<ShiftTypeEntity> shiftTypes = shiftTypeRepository.findAll();
         List<DailyShift> dailyShifts = excelScheduleParser.parse(excelFile, name);

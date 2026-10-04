@@ -5,6 +5,8 @@ import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 public interface ScheduleService {
     /**
      * 주어진 연도 및 월에 파일 내 업무 스케줄 데이터들을 저장한다.
@@ -27,4 +29,11 @@ public interface ScheduleService {
      * @return 사용자의 해당 월에 대한 스케줄 정보
      */
     MonthScheduleData getMonthScheduleData(AccountUserDetails userDetails, int year, int month);
+
+    /**
+     * 현재 등록된 근무 타입 정보를 반환한다.
+     *
+     * @return 근무 타입별 라벨 및 지정 색상 정보
+     */
+    Map<String, String> getShiftTypes();
 }

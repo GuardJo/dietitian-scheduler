@@ -13,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/schedules")
 @Slf4j
@@ -37,5 +39,14 @@ public class ScheduleController implements ScheduleApiDocs {
         MonthScheduleData data = scheduleService.getMonthScheduleData(userDetails, year, month);
 
         return BaseResponse.of(HttpStatus.OK, data);
+    }
+
+    @GetMapping("/shifts/colors")
+    @Override
+    public BaseResponse<Map<String, String>> getScheduleTypes() {
+        log.info("GET : /api/schedules/shifts/colors");
+        Map<String, String> types = scheduleService.getShiftTypes();
+
+        return BaseResponse.of(HttpStatus.OK, types);
     }
 }

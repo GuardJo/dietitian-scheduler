@@ -265,6 +265,42 @@ class ScheduleControllerTest {
         verifyNoInteractions(scheduleService);
     }
 
+    @DisplayName("GET: /api/schedules/shifts/colors -> 정상 응답")
+    @Test
+    void test_get_schedule_types() throws Exception {
+        Map<String, String> types = Map.of("a", "#FF0000", "b", "#00FF00", "c", "#0000FF");
+        BaseResponse<Map<String, String>> expected = BaseResponse.of(HttpStatus.OK, types);
+        given(scheduleService.getShiftTypes()).willReturn(types);
+
+        MvcResult result = mvc.perform(get(SCHEDULE_URL + "/shifts/colors")
+                        .with(authentication(authenticated())))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(toShiftTypesResponse(result)).isEqualTo(expected);
+
+        then(scheduleService).should().getShiftTypes();
+    }
+
+    @DisplayName("GET: /api/schedules/shifts/colors -> 근무 유형이 없을 때")
+    @Test
+    void test_get_schedule_types_empty() throws Exception {
+        given(scheduleService.getShiftTypes()).willReturn(Map.of());
+
+        MvcResult result = mvc.perform(get(SCHEDULE_URL + "/shifts/colors")
+                        .with(authentication(authenticated())))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        BaseResponse<Map<String, String>> actual = toShiftTypesResponse(result);
+        assertThat(actual.status()).isEqualTo(HttpStatus.OK.value());
+        assertThat(actual.data()).isEmpty();
+
+        then(scheduleService).should().getShiftTypes();
+    }
+
     private Authentication authenticated() {
         return new UsernamePasswordAuthenticationToken(USER_DETAILS, null, USER_DETAILS.getAuthorities());
     }
@@ -285,6 +321,13 @@ class ScheduleControllerTest {
         String content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 
         return objectMapper.readValue(content, new TypeReference<BaseResponse<MonthScheduleData>>() {
+        });
+    }
+
+    private BaseResponse<Map<String, String>> toShiftTypesResponse(MvcResult result) throws Exception {
+        String content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        return objectMapper.readValue(content, new TypeReference<BaseResponse<Map<String, String>>>() {
         });
     }
 }
