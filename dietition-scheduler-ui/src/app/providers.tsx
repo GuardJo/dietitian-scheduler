@@ -1,10 +1,12 @@
 "use client";
 
 import {useEffect, useState} from "react";
-import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import {QueryCache, QueryClient, QueryClientProvider} from "@tanstack/react-query";
 
 import {IS_API_MOCKING_ENABLED} from "@/lib/config";
 import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
+import {ApiError} from "@/lib/http-client";
+import {useRouter} from "next/navigation";
 
 /*
 클라이언트 전역 Provider
@@ -13,7 +15,7 @@ import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
 - 로컬 개발 모드에서는 msw 워커 기동이 끝난 뒤에 children 을 렌더링한다.
   (워커 준비 전에 요청이 나가면 모킹이 적용되지 않기 때문)
  */
-function createQueryClient() {
+function createQueryClient(onUnauthorized: () => void) {
     return new QueryClient({
         defaultOptions: {
             queries: {
@@ -25,11 +27,19 @@ function createQueryClient() {
                 retry: 0,
             },
         },
+        queryCache: new QueryCache({
+            onError: (error) => {
+                if (error instanceof ApiError && error.status === 401) {
+                    onUnauthorized();
+                }
+            }
+        }),
     });
 }
 
 export default function Providers({children}: { children: React.ReactNode }) {
-    const [queryClient] = useState(createQueryClient);
+    const router = useRouter();
+    const [queryClient] = useState(createQueryClient(() => router.replace("/login")));
     const [isMockingReady, setIsMockingReady] = useState(!IS_API_MOCKING_ENABLED);
 
     useEffect(() => {
