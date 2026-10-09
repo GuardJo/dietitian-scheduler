@@ -14,9 +14,10 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
     args: {
         colors: {
-            a: '#0867c9',
-            b: '#a9c4ff',
-            c: '#626466'
+            A: '#0867c9',
+            B: '#a9c4ff',
+            C: '#626466',
+            ALL: '#10B981'
         },
         onColorChange: action('change color')
     }
