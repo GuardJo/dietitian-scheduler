@@ -17,12 +17,13 @@ export const HasData: Story = {
             month: 9,
             label: 'September 2026',
             shiftCount: 22,
-            shifts: {4: 'a', 5: 'c', 6: 'b', 10: 'a'}
+            shifts: {4: 'A', 5: 'C', 6: 'B', 10: 'A'}
         },
         colors: {
-            a: '#0867c9',
-            b: '#a9c4ff',
-            c: '#626466'
+            A: '#0867c9',
+            B: '#a9c4ff',
+            C: '#626466',
+            ALL: '#10B981'
         },
     }
 };
@@ -37,9 +38,10 @@ export const Empty: Story = {
             shifts: {}
         },
         colors: {
-            a: '#0867c9',
-            b: '#a9c4ff',
-            c: '#626466'
+            A: '#0867c9',
+            B: '#a9c4ff',
+            C: '#626466',
+            ALL: '#10B981'
         },
     }
 };
