@@ -1,10 +1,11 @@
-export type Shift = 'a' | 'c' | 'b'
+export type Shift = 'A' | 'C' | 'B' | 'ALL'
 export type ShiftColors = Record<Shift, string>
 
 export const ShiftLabel: Record<Shift, string> = {
-    a: '05:30 ~ 15:00',
-    c: '08:30 ~ 18:00',
-    b: '10:00 ~ 19:30'
+    A: '05:30 ~ 15:00',
+    C: '08:30 ~ 18:00',
+    B: '10:00 ~ 19:30',
+    ALL: '05:30 ~ 17:30'
 }
 
 export interface CalendarCell {
