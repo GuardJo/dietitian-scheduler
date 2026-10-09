@@ -35,4 +35,10 @@ public class AuthServiceImpl implements AuthService {
 
         return new TokenPair(accessToken, refreshToken);
     }
+
+    @Override
+    public TokenPair refresh(String refreshToken) {
+        // TODO 기능 구현
+        return null;
+    }
 }

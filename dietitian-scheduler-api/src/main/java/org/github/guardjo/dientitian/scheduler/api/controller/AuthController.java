@@ -42,10 +42,7 @@ public class AuthController implements AuthApiDocs {
         log.info("POST : /api/auth/login, username = {}, password = {}", loginRequest.username(), "*********");
         TokenPair tokenPair = authService.login(loginRequest.username(), loginRequest.password());
 
-        response.addHeader(HttpHeaders.SET_COOKIE,
-                buildCookie(JwtConstant.ACCESS_TOKEN_COOKIE_NAME, tokenPair.accessToken(), JwtConstant.ACCESS_TOKEN_COOKIE_PATH, jwtProperties.accessTokenExpirationSeconds()).toString());
-        response.addHeader(HttpHeaders.SET_COOKIE,
-                buildCookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, tokenPair.refreshToken(), JwtConstant.REFRESH_TOKEN_COOKIE_PATH, jwtProperties.refreshTokenExpirationSeconds()).toString());
+        writeToken(response, tokenPair);
 
         return BaseResponse.of(HttpStatus.OK, "Success");
     }
@@ -60,6 +57,17 @@ public class AuthController implements AuthApiDocs {
         response.addHeader(HttpHeaders.SET_COOKIE, buildCookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, "", JwtConstant.REFRESH_TOKEN_COOKIE_PATH, 0).toString());
     }
 
+    @PostMapping("/refresh")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Override
+    public void refresh(@CookieValue(name = JwtConstant.REFRESH_TOKEN_COOKIE_NAME) String refreshToken, HttpServletResponse response) {
+        log.info("POST : /api/auth/refresh, token = {}", refreshToken);
+
+        TokenPair tokenPair = authService.refresh(refreshToken);
+
+        writeToken(response, tokenPair);
+    }
+
     private ResponseCookie buildCookie(String name, String value, String path, long maxAgeSeconds) {
         return ResponseCookie.from(name, value)
                 .httpOnly(true)
@@ -68,5 +76,15 @@ public class AuthController implements AuthApiDocs {
                 .path(path)
                 .maxAge(maxAgeSeconds)
                 .build();
+    }
+
+    /*
+    인증 토큰 정보를 응답 객체에 쿠키로 삽입
+     */
+    private void writeToken(HttpServletResponse response, TokenPair tokenPair) {
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                buildCookie(JwtConstant.ACCESS_TOKEN_COOKIE_NAME, tokenPair.accessToken(), JwtConstant.ACCESS_TOKEN_COOKIE_PATH, jwtProperties.accessTokenExpirationSeconds()).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                buildCookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, tokenPair.refreshToken(), JwtConstant.REFRESH_TOKEN_COOKIE_PATH, jwtProperties.refreshTokenExpirationSeconds()).toString());
     }
 }

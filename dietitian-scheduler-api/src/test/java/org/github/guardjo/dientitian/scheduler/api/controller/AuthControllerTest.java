@@ -1,5 +1,6 @@
 package org.github.guardjo.dientitian.scheduler.api.controller;
 
+import jakarta.servlet.http.Cookie;
 import org.github.guardjo.dientitian.scheduler.api.config.JwtConfig;
 import org.github.guardjo.dientitian.scheduler.api.jwt.JwtConstant;
 import org.github.guardjo.dientitian.scheduler.api.jwt.JwtUtil;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.TestSecurityContextHolder;
@@ -52,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerTest {
     private static final String LOGIN_URL = "/api/auth/login";
     private static final String LOGOUT_URL = "/api/auth/logout";
+    private static final String REFRESH_URL = "/api/auth/refresh";
     private static final AccountUserDetails USER_DETAILS = new AccountUserDetails(1L, "tester", "테스터", "password");
 
     @Autowired
@@ -169,6 +172,78 @@ class AuthControllerTest {
                 .andReturn();
 
         verifyNoInteractions(authService);
+    }
+
+    @DisplayName("POST: /api/auth/refresh -> 정상 응답")
+    @Test
+    void test_refresh() throws Exception {
+        String refreshToken = "old-refresh-token";
+        TokenPair tokenPair = new TokenPair("new-access-token", "new-refresh-token");
+
+        given(authService.refresh(eq(refreshToken))).willReturn(tokenPair);
+
+        mvc.perform(post(REFRESH_URL)
+                        .cookie(new Cookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, refreshToken)))
+                .andDo(print())
+                .andExpect(status().isNoContent())
+                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(allOf(
+                        startsWith(JwtConstant.ACCESS_TOKEN_COOKIE_NAME + "=" + tokenPair.accessToken()),
+                        containsString("Path=" + JwtConstant.ACCESS_TOKEN_COOKIE_PATH),
+                        containsString("Max-Age=1800")))))
+                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(allOf(
+                        startsWith(JwtConstant.REFRESH_TOKEN_COOKIE_NAME + "=" + tokenPair.refreshToken()),
+                        containsString("Path=" + JwtConstant.REFRESH_TOKEN_COOKIE_PATH),
+                        containsString("Max-Age=604800")))))
+                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, everyItem(allOf(
+                        containsString("HttpOnly"),
+                        containsString("SameSite=Strict"),
+                        not(containsString("Secure"))))));
+
+        then(authService).should().refresh(eq(refreshToken));
+    }
+
+    @DisplayName("POST: /api/auth/refresh -> 리프레시 토큰 검증 실패")
+    @Test
+    void test_refresh_invalid_token() throws Exception {
+        String refreshToken = "invalid-refresh-token";
+
+        String message = "유효하지 않은 리프레시 토큰입니다.";
+        BaseResponse<String> expected = BaseResponse.of(HttpStatus.UNAUTHORIZED, message);
+
+        given(authService.refresh(eq(refreshToken))).willThrow(new BadCredentialsException(message));
+
+        MvcResult result = mvc.perform(post(REFRESH_URL)
+                        .cookie(new Cookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, refreshToken)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().doesNotExist(HttpHeaders.SET_COOKIE))
+                .andReturn();
+
+        assertThat(toBaseResponse(result)).isEqualTo(expected);
+
+        then(authService).should().refresh(eq(refreshToken));
+    }
+
+    @DisplayName("POST: /api/auth/refresh -> 토큰에 해당하는 회원 정보가 존재하지 않을 때")
+    @Test
+    void test_refresh_user_not_found() throws Exception {
+        String refreshToken = "refresh-token";
+
+        String message = "회원 정보를 찾을 수 없습니다.";
+        BaseResponse<String> expected = BaseResponse.of(HttpStatus.UNAUTHORIZED, message);
+
+        given(authService.refresh(eq(refreshToken))).willThrow(new UsernameNotFoundException(message));
+
+        MvcResult result = mvc.perform(post(REFRESH_URL)
+                        .cookie(new Cookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, refreshToken)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().doesNotExist(HttpHeaders.SET_COOKIE))
+                .andReturn();
+
+        assertThat(toBaseResponse(result)).isEqualTo(expected);
+
+        then(authService).should().refresh(eq(refreshToken));
     }
 
     private BaseResponse<String> toBaseResponse(MvcResult result) throws Exception {
