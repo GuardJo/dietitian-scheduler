@@ -1,10 +1,12 @@
 package org.github.guardjo.dientitian.scheduler.api.utils;
 
 import org.github.guardjo.dientitian.scheduler.api.model.entity.AccountEntity;
+import org.github.guardjo.dientitian.scheduler.api.model.entity.RefreshTokenEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.ScheduleEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.ShiftTypeEntity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class TestDataGenerator {
@@ -42,6 +44,14 @@ public class TestDataGenerator {
                 .account(account)
                 .workDate(workDate)
                 .shiftType(shiftType)
+                .build();
+    }
+
+    public static RefreshTokenEntity refreshTokenEntity(AccountEntity account, String tokenHash, LocalDateTime expiredAt) {
+        return RefreshTokenEntity.builder()
+                .account(account)
+                .tokenHash(tokenHash)
+                .expiredAt(expiredAt)
                 .build();
     }
 }
