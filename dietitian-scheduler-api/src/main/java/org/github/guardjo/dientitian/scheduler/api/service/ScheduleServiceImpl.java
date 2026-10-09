@@ -19,10 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -54,6 +51,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         log.info("Shift schedule saved, totalSchedules: {}", scheduleEntities.size());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public MonthScheduleData getMonthScheduleData(AccountUserDetails userDetails, int year, int month) {
         log.info("Get month schedule, username: {}, year: {}, month: {}", userDetails.getUsername(), year, month);
@@ -69,6 +67,22 @@ public class ScheduleServiceImpl implements ScheduleService {
         log.info("Month schedule data retrieved.");
 
         return new MonthScheduleData(year, month, String.format("%d년 %d월", year, month), shiftsData.size(), shiftsData);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Map<String, String> getShiftTypes() {
+        log.info("Get shift types");
+
+        List<ShiftTypeEntity> shiftTypes = shiftTypeRepository.findAll();
+
+        Map<String, String> shiftTypeMap = shiftTypes.stream()
+                .collect(HashMap::new, (map, shiftType) -> {
+                    map.put(shiftType.getLabel(), shiftType.getColor());
+                }, Map::putAll);
+
+        log.info("Shift types retrieved. totalTypes = {}", shiftTypeMap.size());
+        return shiftTypeMap;
     }
 
     private List<ScheduleEntity> parseExcel(MultipartFile excelFile, String name, AccountEntity account, int year, int month) {
