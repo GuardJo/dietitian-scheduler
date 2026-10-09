@@ -256,6 +256,16 @@ erDiagram
         datetime updated_at "not null"
     }
 
+    REFRESH_TOKEN { 
+        bigint id PK
+        bigint account_id FK "ACCOUNT 테이블"
+        varchar token_hash "not null refreshToken 해시값"
+        datetime expired_at "not null 만료일시"
+        datetime created_at "not null"
+        datetime updated_at "not null"
+    }
+
     ACCOUNT ||--o{ SCHEDULE : account_id
     SHIFT_TYPE ||--o{ SCHEDULE : schedule_type_id
+    ACCOUNT ||--o{ REFRESH_TOKEN : account_id
 ```
