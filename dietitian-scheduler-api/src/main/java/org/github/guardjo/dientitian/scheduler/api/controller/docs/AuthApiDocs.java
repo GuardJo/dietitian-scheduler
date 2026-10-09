@@ -19,5 +19,5 @@ public interface AuthApiDocs {
     void logout(@Parameter(hidden = true) AccountUserDetails userDetails, @Parameter(hidden = true) HttpServletResponse response);
 
     @Operation(summary = "인증토큰 갱신", description = "refreshToken을 기반으로 accessToken과 refreshToken을 갱신한다.")
-    void refresh(@NotNull(message = "리프레시 토큰이 없습니다.") String refreshToken, @Parameter(hidden = true) HttpServletResponse response);
+    void refresh(@Parameter(hidden = true) @NotNull(message = "리프레시 토큰이 없습니다.") String refreshToken, @Parameter(hidden = true) HttpServletResponse response);
 }
