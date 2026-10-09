@@ -83,6 +83,8 @@ create table refresh_token(
                               updated_at timestamp not null default now()
 );
 
+create index refresh_token_account_id_idx on refresh_token(account_id);
+
 comment on table refresh_token is '리프레시 토큰 관리 테이블';
 comment on column refresh_token.id is '리프레시 토큰 식별키';
 comment on column refresh_token.account_id is '사용자 식별키';
