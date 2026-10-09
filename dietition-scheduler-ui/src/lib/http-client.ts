@@ -45,12 +45,12 @@ async function request<TResponse>(path: string, options: RequestOptions = {}): P
     if (!response.ok) {
         const message =
             (isJson && payload && typeof payload === "object" && "message" in payload
-                ? String((payload as {message: unknown}).message)
+                ? String((payload as { message: unknown }).message)
                 : null) ?? `요청이 실패했습니다. (${response.status})`;
         throw new ApiError(response.status, message, payload);
     }
 
-    return payload as TResponse;
+    return payload.data as TResponse;
 }
 
 export const http = {
