@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
     public TokenPair login(String username, String password) {
         AccountEntity account = accountEntityRepository.findByUsername(username)
@@ -46,6 +46,8 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = jwtUtil.generateAccessToken(account.getId());
         String refreshToken = jwtUtil.generateRefreshToken(account.getId());
+
+        createRefreshToken(account, refreshToken);
 
         return new TokenPair(accessToken, refreshToken);
     }
@@ -97,5 +99,19 @@ public class AuthServiceImpl implements AuthService {
      */
     private LocalDateTime calcExpiredAt() {
         return LocalDateTime.now().plusSeconds(jwtUtil.getRefreshTokenExpirationSeconds());
+    }
+
+    /*
+    신규 refresh token 저장
+     */
+    private void createRefreshToken(AccountEntity account, String refreshToken) {
+        log.info("Creating new refresh token");
+        RefreshTokenEntity newRefreshToken = refreshTokenRepository.save(RefreshTokenEntity.builder()
+                .account(account)
+                .expiredAt(calcExpiredAt())
+                .tokenHash(sha256Hex(refreshToken))
+                .build());
+
+        log.info("New refresh token created, id: {}", newRefreshToken.getId());
     }
 }

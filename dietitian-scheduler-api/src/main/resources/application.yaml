@@ -30,6 +30,6 @@ server:
     max-part-header-size: 2KB
 
 jwt:
-  secret: change-this-secret-to-a-long-random-value-in-production
+  secret: IIn0hBe4AqQNxYnEdZSiyUJw4KdLXk5/rHHG6DotNUiu2xp85UV+sK1Xich04Ws0
   access-token-expiration-seconds: 1800
   refresh-token-expiration-seconds: 604800

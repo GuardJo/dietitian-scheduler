@@ -54,11 +54,14 @@ class AuthServiceTest {
         TokenPair expected = new TokenPair("access-token", "refresh-token");
 
         AccountEntity account = TestDataGenerator.accountEntity(1L, "tester", "테스터", "encoded-password");
+        RefreshTokenEntity refreshTokenEntity = TestDataGenerator.refreshTokenEntity(1L, account, "token-hash", LocalDateTime.now().plusDays(7));
 
         given(accountEntityRepository.findByUsername(eq(username))).willReturn(Optional.of(account));
         given(passwordEncoder.matches(eq(password), eq(account.getPassword()))).willReturn(true);
         given(jwtUtil.generateAccessToken(eq(account.getId()))).willReturn(expected.accessToken());
         given(jwtUtil.generateRefreshToken(eq(account.getId()))).willReturn(expected.refreshToken());
+        given(jwtUtil.getRefreshTokenExpirationSeconds()).willReturn(604800L);
+        given(refreshTokenRepository.save(any(RefreshTokenEntity.class))).willReturn(refreshTokenEntity);
 
         TokenPair actual = authService.login(username, password);
 
@@ -68,6 +71,7 @@ class AuthServiceTest {
         then(passwordEncoder).should().matches(eq(password), eq(account.getPassword()));
         then(jwtUtil).should().generateAccessToken(eq(account.getId()));
         then(jwtUtil).should().generateRefreshToken(eq(account.getId()));
+        then(refreshTokenRepository).should().save(any(RefreshTokenEntity.class));
     }
 
     @DisplayName("존재하지 않는 아이디로 로그인하면 예외가 발생한다.")
@@ -80,7 +84,7 @@ class AuthServiceTest {
                 .isInstanceOf(UsernameNotFoundException.class);
 
         then(accountEntityRepository).should().findByUsername(eq(username));
-        verifyNoInteractions(jwtUtil);
+        verifyNoInteractions(jwtUtil, refreshTokenRepository, passwordEncoder);
     }
 
     @DisplayName("비밀번호가 일치하지 않으면 예외가 발생한다.")
@@ -98,7 +102,7 @@ class AuthServiceTest {
 
         then(accountEntityRepository).should().findByUsername(eq(username));
         then(passwordEncoder).should().matches(eq(password), eq(account.getPassword()));
-        verifyNoInteractions(jwtUtil);
+        verifyNoInteractions(jwtUtil, refreshTokenRepository);
     }
 
     @DisplayName("유효한 리프레시 토큰으로 토큰을 갱신한다.")
@@ -131,7 +135,6 @@ class AuthServiceTest {
         then(refreshTokenRepository).should().findByTokenHash(anyString());
         then(jwtUtil).should().generateAccessToken(eq(account.getId()));
         then(jwtUtil).should().generateRefreshToken(eq(account.getId()));
-        then(jwtUtil).should().getRefreshTokenExpirationSeconds();
     }
 
     @DisplayName("유효하지 않은 리프레시 토큰으로 갱신 시 예외가 발생한다.")

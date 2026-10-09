@@ -54,4 +54,13 @@ public class TestDataGenerator {
                 .expiredAt(expiredAt)
                 .build();
     }
+
+    public static RefreshTokenEntity refreshTokenEntity(Long id, AccountEntity account, String tokenHash, LocalDateTime expiredAt) {
+        return RefreshTokenEntity.builder()
+                .id(id)
+                .account(account)
+                .tokenHash(tokenHash)
+                .expiredAt(expiredAt)
+                .build();
+    }
 }
