@@ -230,6 +230,40 @@ class ScheduleServiceTest {
         verifyNoInteractions(accountRepository, excelScheduleParser, shiftTypeRepository);
     }
 
+    @DisplayName("근무 타입 목록을 라벨 순으로 정렬된 라벨-색상 Map으로 반환한다.")
+    @Test
+    void test_getShiftTypes_success() {
+        ShiftTypeEntity dayShift = TestDataGenerator.shiftTypeEntity("C", LocalTime.of(8, 30), LocalTime.of(18, 0), "#FFAA00");
+        ShiftTypeEntity nightShift = TestDataGenerator.shiftTypeEntity("A", LocalTime.of(5, 30), LocalTime.of(15, 0), "#00AAFF");
+        ShiftTypeEntity middleShift = TestDataGenerator.shiftTypeEntity("B", LocalTime.of(7, 0), LocalTime.of(16, 30), "#AAFF00");
+
+        given(shiftTypeRepository.findAll()).willReturn(List.of(dayShift, nightShift, middleShift));
+
+        Map<String, String> result = scheduleService.getShiftTypes();
+
+        assertThat(result).containsExactly(
+                Map.entry(nightShift.getLabel(), nightShift.getColor()),
+                Map.entry(middleShift.getLabel(), middleShift.getColor()),
+                Map.entry(dayShift.getLabel(), dayShift.getColor())
+        );
+
+        then(shiftTypeRepository).should().findAll();
+        verifyNoInteractions(accountRepository, excelScheduleParser, scheduleRepository);
+    }
+
+    @DisplayName("근무 타입 정보가 없으면 빈 Map을 반환한다.")
+    @Test
+    void test_getShiftTypes_no_data() {
+        given(shiftTypeRepository.findAll()).willReturn(List.of());
+
+        Map<String, String> result = scheduleService.getShiftTypes();
+
+        assertThat(result).isEmpty();
+
+        then(shiftTypeRepository).should().findAll();
+        verifyNoInteractions(accountRepository, excelScheduleParser, scheduleRepository);
+    }
+
     private AccountEntity accountEntity() {
         return TestDataGenerator.accountEntity(USER_DETAILS.id(), USER_DETAILS.username(), USER_DETAILS.name(), "encoded-password");
     }
