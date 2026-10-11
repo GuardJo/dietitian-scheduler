@@ -77,7 +77,7 @@ async function parse<TResponse>(response: Response): Promise<TResponse> {
         throw new ApiError(response.status, message, payload);
     }
 
-    return payload.data as TResponse;
+    return (payload && typeof payload === "object" && "data" in payload ? payload.data : payload) as TResponse;
 }
 
 async function request<TResponse>(path: string, options: RequestOptions = {}, isRetry = false): Promise<TResponse> {

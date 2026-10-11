@@ -3,7 +3,12 @@
  */
 
 import {http} from "@/lib/http-client";
-import {MonthData, ShiftColors} from "@/lib/models";
+import {MonthData, Shift, ShiftColors} from "@/lib/models";
+
+export interface ShiftColorChangeRequest {
+    shiftType: Shift;
+    color: string;
+}
 
 export const scheduleService = {
     getSchedules(year: number, month: number): Promise<MonthData> {
@@ -17,7 +22,13 @@ export const scheduleService = {
         formData.append("year", year.toString());
         formData.append("month", month.toString());
         formData.append("file", file);
-        
+
         return http.post("/api/schedules", formData);
+    },
+    updateShiftColor(changeReq: ShiftColorChangeRequest): Promise<void> {
+        return http.patch(`/api/schedules/shifts/colors`, {
+            shiftType: changeReq.shiftType,
+            color: changeReq.color,
+        });
     }
 };

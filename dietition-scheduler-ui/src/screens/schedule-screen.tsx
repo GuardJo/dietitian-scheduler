@@ -5,8 +5,8 @@ import ScheduleCountSection from "@/components/schedule-count-section";
 import ShiftLegendSection from "@/components/shift-legend-section";
 import CalendarGrid from "@/components/calendar-grid";
 import {MonthData, Shift, ShiftColors} from "@/lib/models";
-import {useQuery} from "@tanstack/react-query";
-import {scheduleService} from "@/services/schedule-service";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {scheduleService, ShiftColorChangeRequest} from "@/services/schedule-service";
 import {useState} from "react";
 import {Plus} from "lucide-react";
 import ShiftRegisterModal from "@/components/shift-register-modal";
@@ -27,12 +27,13 @@ export default function ScheduleScreen() {
         B: '#F59E0B',
         C: '#8B5CF6',
         ALL: '#10B981'
-    }
+    };
 
     const [selectedYear, setSelectedYear] = useState(currentYear);
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+    const queryClient = useQueryClient();
     const {data: scheduleData = defaultData} = useQuery({
         queryFn: () => scheduleService.getSchedules(selectedYear, selectedMonth),
         queryKey: ['schedules', selectedYear, selectedMonth]
@@ -43,9 +44,17 @@ export default function ScheduleScreen() {
         queryKey: ['shift-colors'],
     });
 
+    const {mutate: updateShiftColor} = useMutation({
+        mutationFn: (payload: ShiftColorChangeRequest) => scheduleService.updateShiftColor(payload),
+        mutationKey: ['updateShiftColor'],
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['shift-colors']});
+        }
+    })
+
     const handleChangeColors = (shift: Shift, color: string) => {
         console.log(`change color: ${shift} -> ${color}`);
-        // TODO 추후 색상 변경 기능 연동 예정
+        updateShiftColor({shiftType: shift, color: color});
     }
 
     return (
