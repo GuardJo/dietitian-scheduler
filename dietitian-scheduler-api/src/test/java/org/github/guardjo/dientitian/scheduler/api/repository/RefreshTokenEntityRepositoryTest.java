@@ -81,4 +81,78 @@ class RefreshTokenEntityRepositoryTest {
 
         assertThat(actual).isEmpty();
     }
+
+    @DisplayName("토큰 해시값을 기준으로 RefreshTokenEntity 삭제 성공 시")
+    @Test
+    void test_deleteAllByTokenHash() {
+        String tokenHash = testRefreshToken.getTokenHash();
+
+        long deletedCount = refreshTokenRepository.deleteAllByTokenHash(tokenHash);
+
+        assertThat(deletedCount).isEqualTo(1);
+
+        Optional<RefreshTokenEntity> actual = refreshTokenRepository.findByTokenHash(tokenHash);
+        assertThat(actual).isEmpty();
+    }
+
+    @DisplayName("토큰 해시값을 기준으로 RefreshTokenEntity 삭제 시 찾을 수 없는 경우")
+    @Test
+    void test_deleteAllByTokenHash_not_found() {
+        String unknownTokenHash = "20b02caa014e70b56f168b0a0000a56e3e71fffa9f0e1b88eb44e73b2af5ce7f";
+
+        long deletedCount = refreshTokenRepository.deleteAllByTokenHash(unknownTokenHash);
+
+        assertThat(deletedCount).isZero();
+    }
+
+    @DisplayName("사용자 ID를 기준으로 RefreshTokenEntity 삭제 성공 시")
+    @Test
+    void test_deleteAllByAccount_Id() {
+        Long accountId = testAccount.getId();
+
+        long deletedCount = refreshTokenRepository.deleteAllByAccount_Id(accountId);
+
+        assertThat(deletedCount).isEqualTo(1);
+
+        long remainingCount = refreshTokenRepository.count();
+        assertThat(remainingCount).isZero();
+    }
+
+    @DisplayName("사용자 ID를 기준으로 RefreshTokenEntity 삭제 시 찾을 수 없는 경우")
+    @Test
+    void test_deleteAllByAccount_Id_not_found() {
+        Long unknownAccountId = 99999L;
+
+        long deletedCount = refreshTokenRepository.deleteAllByAccount_Id(unknownAccountId);
+
+        assertThat(deletedCount).isZero();
+    }
+
+    @DisplayName("사용자 ID를 기준으로 여러 RefreshTokenEntity 삭제")
+    @Test
+    void test_deleteAllByAccount_Id_multiple() {
+        refreshTokenRepository.save(
+                TestDataGenerator.refreshTokenEntity(
+                        testAccount,
+                        "456def789abc012ghi345jkl678mno901pqr234stu567vwx890yz12ab",
+                        LocalDateTime.now().plusDays(7)
+                )
+        );
+        refreshTokenRepository.save(
+                TestDataGenerator.refreshTokenEntity(
+                        testAccount,
+                        "hash789ghi012def345abc678jkl901mno234pqr567stu890vwx123yz45cd",
+                        LocalDateTime.now().plusDays(7)
+                )
+        );
+
+        Long accountId = testAccount.getId();
+
+        long deletedCount = refreshTokenRepository.deleteAllByAccount_Id(accountId);
+
+        assertThat(deletedCount).isEqualTo(3);
+
+        long remainingCount = refreshTokenRepository.count();
+        assertThat(remainingCount).isZero();
+    }
 }
