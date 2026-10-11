@@ -64,9 +64,11 @@ public class AuthServiceImpl implements AuthService {
 
         String tokenHash = sha256Hex(refreshToken);
 
-        // TODO 조회 결과가 없을 시 해당 계정의 리프레시 토큰들 제거 (토큰 탈취 당했을 가능성)
         RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByTokenHash(tokenHash)
-                .orElseThrow(() -> new AuthenticationCredentialsNotFoundException("인증 정보가 존재하지 않습니다"));
+                .orElseThrow(() -> {
+                    clearAllRefreshToken(refreshToken);
+                    return new AuthenticationCredentialsNotFoundException("인증 정보가 존재하지 않습니다");
+                });
 
         Long userId = refreshTokenEntity.getAccount().getId();
         String newAccessToken = jwtUtil.generateAccessToken(userId);
@@ -113,5 +115,15 @@ public class AuthServiceImpl implements AuthService {
                 .build());
 
         log.info("New refresh token created, id: {}", newRefreshToken.getId());
+    }
+
+    /*
+    사용자에 대한 refresh_token 전체 제거
+     */
+    private void clearAllRefreshToken(String token) {
+        long accountId = jwtUtil.getUserId(token);
+        log.info("Clearing all refresh tokens for account: {}", accountId);
+        long deletedRows = refreshTokenRepository.deleteAllByAccount_Id(accountId);
+        log.info("Deleted {} refresh tokens", deletedRows);
     }
 }

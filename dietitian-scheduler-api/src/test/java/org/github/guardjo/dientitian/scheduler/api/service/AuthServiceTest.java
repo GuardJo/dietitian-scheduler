@@ -155,14 +155,18 @@ class AuthServiceTest {
     @Test
     void test_refresh_with_not_found_token() {
         String refreshToken = "valid-but-not-stored-token";
+        Long userId = 1L;
 
         given(jwtUtil.isValid(eq(refreshToken), eq(TokenType.REFRESH))).willReturn(true);
         given(refreshTokenRepository.findByTokenHash(anyString())).willReturn(Optional.empty());
+        given(jwtUtil.getUserId(eq(refreshToken))).willReturn(userId);
+        given(refreshTokenRepository.deleteAllByAccount_Id(eq(userId))).willReturn(100L);
 
         assertThatThrownBy(() -> authService.refresh(refreshToken))
                 .isInstanceOf(AuthenticationCredentialsNotFoundException.class);
 
         then(jwtUtil).should().isValid(eq(refreshToken), eq(TokenType.REFRESH));
         then(refreshTokenRepository).should().findByTokenHash(anyString());
+        then(refreshTokenRepository).should().deleteAllByAccount_Id(eq(userId));
     }
 }
