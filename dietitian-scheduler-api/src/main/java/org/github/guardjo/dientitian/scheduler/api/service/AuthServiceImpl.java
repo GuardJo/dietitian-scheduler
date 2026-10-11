@@ -81,6 +81,16 @@ public class AuthServiceImpl implements AuthService {
         return new TokenPair(newAccessToken, newRefreshToken);
     }
 
+    @Transactional
+    @Override
+    public void logout(String refreshToken) {
+        log.info("Logging out");
+
+        long deletedRows = refreshTokenRepository.deleteAllByTokenHash(sha256Hex(refreshToken));
+
+        log.info("Logout completed, deleted {} rows", deletedRows);
+    }
+
     /*
     SHA-256 해싱 처리 및 16진수 변환
      */

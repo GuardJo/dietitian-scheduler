@@ -23,4 +23,11 @@ public interface AuthService {
      * @throws org.springframework.security.core.AuthenticationException               인증 및 토큰 처리에 실패했을 경우
      */
     TokenPair refresh(String refreshToken);
+
+    /**
+     * 사용자 로그아웃 처리 간 주어진 refreshToken을 제거한다.
+     *
+     * @param refreshToken 로그아웃할 사용자의 리프레시 토큰
+     */
+    void logout(String refreshToken);
 }

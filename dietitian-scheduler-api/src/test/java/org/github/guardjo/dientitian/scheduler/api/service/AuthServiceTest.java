@@ -169,4 +169,28 @@ class AuthServiceTest {
         then(refreshTokenRepository).should().findByTokenHash(anyString());
         then(refreshTokenRepository).should().deleteAllByAccount_Id(eq(userId));
     }
+
+    @DisplayName("로그아웃 시 해당 리프레시 토큰을 삭제한다.")
+    @Test
+    void test_logout_success() {
+        String refreshToken = "valid-refresh-token";
+
+        given(refreshTokenRepository.deleteAllByTokenHash(anyString())).willReturn(1L);
+
+        authService.logout(refreshToken);
+
+        then(refreshTokenRepository).should().deleteAllByTokenHash(anyString());
+    }
+
+    @DisplayName("존재하지 않는 리프레시 토큰으로 로그아웃 시 정상 처리된다.")
+    @Test
+    void test_logout_with_non_existing_token() {
+        String refreshToken = "non-existing-token";
+
+        given(refreshTokenRepository.deleteAllByTokenHash(anyString())).willReturn(0L);
+
+        authService.logout(refreshToken);
+
+        then(refreshTokenRepository).should().deleteAllByTokenHash(anyString());
+    }
 }

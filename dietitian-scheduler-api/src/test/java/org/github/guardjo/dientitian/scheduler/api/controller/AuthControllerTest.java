@@ -35,8 +35,7 @@ import java.nio.charset.StandardCharsets;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -153,16 +152,20 @@ class AuthControllerTest {
         // addFilters = false 로 시큐리티 필터가 비활성화되어 있어 SecurityContext 에 직접 인증 정보를 등록
         TestSecurityContextHolder.setAuthentication(
                 new UsernamePasswordAuthenticationToken(USER_DETAILS, null, USER_DETAILS.getAuthorities()));
+        String refreshToken = "refresh-token";
 
-        mvc.perform(post(LOGOUT_URL))
+        willDoNothing().given(authService).logout(eq(refreshToken));
+
+        mvc.perform(post(LOGOUT_URL)
+                        .cookie(new Cookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, refreshToken)))
                 .andDo(print())
                 .andExpect(status().isNoContent())
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(allOf(
-                        startsWith(JwtConstant.ACCESS_TOKEN_COOKIE_NAME + "=;"),
+                        containsString(JwtConstant.ACCESS_TOKEN_COOKIE_NAME + "=;"),
                         containsString("Path=" + JwtConstant.ACCESS_TOKEN_COOKIE_PATH),
                         containsString("Max-Age=0")))))
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(allOf(
-                        startsWith(JwtConstant.REFRESH_TOKEN_COOKIE_NAME + "=;"),
+                        containsString(JwtConstant.REFRESH_TOKEN_COOKIE_NAME + "=;"),
                         containsString("Path=" + JwtConstant.REFRESH_TOKEN_COOKIE_PATH),
                         containsString("Max-Age=0")))))
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, everyItem(allOf(
@@ -171,7 +174,7 @@ class AuthControllerTest {
                         not(containsString("Secure"))))))
                 .andReturn();
 
-        verifyNoInteractions(authService);
+        then(authService).should().logout(eq(refreshToken));
     }
 
     @DisplayName("POST: /api/auth/refresh -> 정상 응답")
@@ -187,11 +190,11 @@ class AuthControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent())
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(allOf(
-                        startsWith(JwtConstant.ACCESS_TOKEN_COOKIE_NAME + "=" + tokenPair.accessToken()),
+                        containsString(JwtConstant.ACCESS_TOKEN_COOKIE_NAME + "=" + tokenPair.accessToken()),
                         containsString("Path=" + JwtConstant.ACCESS_TOKEN_COOKIE_PATH),
                         containsString("Max-Age=1800")))))
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(allOf(
-                        startsWith(JwtConstant.REFRESH_TOKEN_COOKIE_NAME + "=" + tokenPair.refreshToken()),
+                        containsString(JwtConstant.REFRESH_TOKEN_COOKIE_NAME + "=" + tokenPair.refreshToken()),
                         containsString("Path=" + JwtConstant.REFRESH_TOKEN_COOKIE_PATH),
                         containsString("Max-Age=604800")))))
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, everyItem(allOf(
