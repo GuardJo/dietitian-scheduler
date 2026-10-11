@@ -69,3 +69,26 @@ comment on column schedule.shift_type_id is '근무 타입 식별키';
 comment on column schedule.memo is '비고';
 comment on column schedule.created_at is '생성일시';
 comment on column schedule.updated_at is '수정일시';
+
+--- 리프레시 토큰 관리
+create sequence refresh_token_seq start with 1 increment by 1;
+comment on sequence refresh_token_seq is 'refreshToken 식별키 시퀀스';
+
+create table refresh_token(
+                              id bigint primary key default nextval('refresh_token_seq'),
+                              account_id bigint not null references account(id) on delete cascade,
+                              token_hash varchar(64) not null unique,
+                              expired_at timestamp not null,
+                              created_at timestamp not null default now(),
+                              updated_at timestamp not null default now()
+);
+
+create index refresh_token_account_id_idx on refresh_token(account_id);
+
+comment on table refresh_token is '리프레시 토큰 관리 테이블';
+comment on column refresh_token.id is '리프레시 토큰 식별키';
+comment on column refresh_token.account_id is '사용자 식별키';
+comment on column refresh_token.token_hash is '해시 처리된 리프레시 토큰(SHA-256 hex)';
+comment on column refresh_token.expired_at is '토큰 만료일시';
+comment on column refresh_token.created_at is '생성일시';
+comment ON column refresh_token.updated_at is '수정일시';

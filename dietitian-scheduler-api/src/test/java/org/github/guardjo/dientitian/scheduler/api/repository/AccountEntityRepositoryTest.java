@@ -1,6 +1,7 @@
 package org.github.guardjo.dientitian.scheduler.api.repository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.github.guardjo.dientitian.scheduler.api.config.JpaConfig;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.AccountEntity;
 import org.github.guardjo.dientitian.scheduler.api.utils.TestDataGenerator;
 import org.junit.jupiter.api.AfterEach;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(JpaConfig.class)
 @Slf4j
 class AccountEntityRepositoryTest {
     @Autowired

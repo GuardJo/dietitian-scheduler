@@ -7,7 +7,6 @@ import org.github.guardjo.dientitian.scheduler.api.controller.docs.AuthApiDocs;
 import org.github.guardjo.dientitian.scheduler.api.jwt.JwtConstant;
 import org.github.guardjo.dientitian.scheduler.api.jwt.JwtProperties;
 import org.github.guardjo.dientitian.scheduler.api.jwt.TokenPair;
-import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.LoginRequest;
 import org.github.guardjo.dientitian.scheduler.api.service.AuthService;
@@ -15,7 +14,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -42,10 +40,7 @@ public class AuthController implements AuthApiDocs {
         log.info("POST : /api/auth/login, username = {}, password = {}", loginRequest.username(), "*********");
         TokenPair tokenPair = authService.login(loginRequest.username(), loginRequest.password());
 
-        response.addHeader(HttpHeaders.SET_COOKIE,
-                buildCookie(JwtConstant.ACCESS_TOKEN_COOKIE_NAME, tokenPair.accessToken(), JwtConstant.ACCESS_TOKEN_COOKIE_PATH, jwtProperties.accessTokenExpirationSeconds()).toString());
-        response.addHeader(HttpHeaders.SET_COOKIE,
-                buildCookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, tokenPair.refreshToken(), JwtConstant.REFRESH_TOKEN_COOKIE_PATH, jwtProperties.refreshTokenExpirationSeconds()).toString());
+        writeToken(response, tokenPair);
 
         return BaseResponse.of(HttpStatus.OK, "Success");
     }
@@ -53,11 +48,24 @@ public class AuthController implements AuthApiDocs {
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Override
-    public void logout(@AuthenticationPrincipal AccountUserDetails userDetails, HttpServletResponse response) {
-        log.info("POST : /api/auth/logout, userId = {}", userDetails.id());
+    public void logout(@CookieValue(name = JwtConstant.REFRESH_TOKEN_COOKIE_NAME) String refreshToken, HttpServletResponse response) {
+        log.info("POST : /api/auth/logout, refreshToken = {}", refreshToken);
+
+        authService.logout(refreshToken);
 
         response.addHeader(HttpHeaders.SET_COOKIE, buildCookie(JwtConstant.ACCESS_TOKEN_COOKIE_NAME, "", JwtConstant.ACCESS_TOKEN_COOKIE_PATH, 0).toString());
         response.addHeader(HttpHeaders.SET_COOKIE, buildCookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, "", JwtConstant.REFRESH_TOKEN_COOKIE_PATH, 0).toString());
+    }
+
+    @PostMapping("/refresh")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Override
+    public void refresh(@CookieValue(name = JwtConstant.REFRESH_TOKEN_COOKIE_NAME) String refreshToken, HttpServletResponse response) {
+        log.info("POST : /api/auth/refresh, token = {}", refreshToken);
+
+        TokenPair tokenPair = authService.refresh(refreshToken);
+
+        writeToken(response, tokenPair);
     }
 
     private ResponseCookie buildCookie(String name, String value, String path, long maxAgeSeconds) {
@@ -68,5 +76,15 @@ public class AuthController implements AuthApiDocs {
                 .path(path)
                 .maxAge(maxAgeSeconds)
                 .build();
+    }
+
+    /*
+    인증 토큰 정보를 응답 객체에 쿠키로 삽입
+     */
+    private void writeToken(HttpServletResponse response, TokenPair tokenPair) {
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                buildCookie(JwtConstant.ACCESS_TOKEN_COOKIE_NAME, tokenPair.accessToken(), JwtConstant.ACCESS_TOKEN_COOKIE_PATH, jwtProperties.accessTokenExpirationSeconds()).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                buildCookie(JwtConstant.REFRESH_TOKEN_COOKIE_NAME, tokenPair.refreshToken(), JwtConstant.REFRESH_TOKEN_COOKIE_PATH, jwtProperties.refreshTokenExpirationSeconds()).toString());
     }
 }
