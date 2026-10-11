@@ -1,7 +1,7 @@
 "use client";
 
 import {useEffect, useState} from "react";
-import {QueryCache, QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import {MutationCache, QueryCache, QueryClient, QueryClientProvider} from "@tanstack/react-query";
 
 import {IS_API_MOCKING_ENABLED} from "@/lib/config";
 import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
@@ -16,6 +16,13 @@ import {useRouter} from "next/navigation";
   (워커 준비 전에 요청이 나가면 모킹이 적용되지 않기 때문)
  */
 function createQueryClient(onUnauthorized: () => void) {
+    // http-client 의 토큰 재발급까지 실패한 401 만 여기로 올라온다.
+    const handleError = (error: Error) => {
+        if (error instanceof ApiError && error.status === 401) {
+            onUnauthorized();
+        }
+    };
+
     return new QueryClient({
         defaultOptions: {
             queries: {
@@ -27,19 +34,19 @@ function createQueryClient(onUnauthorized: () => void) {
                 retry: 0,
             },
         },
-        queryCache: new QueryCache({
-            onError: (error) => {
-                if (error instanceof ApiError && error.status === 401) {
-                    onUnauthorized();
-                }
-            }
-        }),
+        queryCache: new QueryCache({onError: handleError}),
+        mutationCache: new MutationCache({onError: handleError}),
     });
 }
 
 export default function Providers({children}: { children: React.ReactNode }) {
     const router = useRouter();
-    const [queryClient] = useState(createQueryClient(() => router.replace("/login")));
+    const [queryClient] = useState(createQueryClient(() => {
+        // 로그인 실패(401)는 로그인 페이지에서 직접 처리하므로 이동하지 않는다.
+        if (window.location.pathname !== "/login") {
+            router.replace("/login");
+        }
+    }));
     const [isMockingReady, setIsMockingReady] = useState(!IS_API_MOCKING_ENABLED);
 
     useEffect(() => {

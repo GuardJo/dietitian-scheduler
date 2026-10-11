@@ -67,6 +67,18 @@ export const handlers = [
             },
         });
     }),
+    http.post("*/api/auth/refresh", async ({cookies}) => {
+        // 실제로는 refresh_token 쿠키를 검증하지만, mock 에서는 access 쿠키 유무로 대신한다.
+        if (!cookies[AUTH_COOKIE]) {
+            return HttpResponse.json({message: "인증이 필요합니다."}, {status: 401});
+        }
+        return new HttpResponse(null, {
+            status: 200,
+            headers: {
+                "Set-Cookie": `${AUTH_COOKIE}=${createMockJwt(MOCK_USER.username)}; Path=/; SameSite=Lax; Max-Age=3600`,
+            },
+        });
+    }),
     http.get("*/api/schedules", async ({request}) => {
         const url = new URL(request.url);
         const params = new URLSearchParams(url.search);
@@ -81,8 +93,9 @@ export const handlers = [
             shifts: {4: 'A', 5: 'C', 6: 'B', 10: 'A'}
         }
 
-        return HttpResponse.json(data, {
-            status: 200
+        return HttpResponse.json({
+            status: 200,
+            data: data
         });
     }),
     http.get("*/api/schedules/shifts/colors", async () => {
@@ -93,8 +106,9 @@ export const handlers = [
             ALL: '#10B981'
         };
 
-        return HttpResponse.json(data, {
-            status: 200
+        return HttpResponse.json({
+            status: 200,
+            data: data
         });
     }),
     http.post("*/api/schedules", async ({request}) => {
@@ -109,8 +123,9 @@ export const handlers = [
 
         console.log(`year: ${year}, month: ${month}`);
 
-        return HttpResponse.json("successes", {
-            status: 200
+        return HttpResponse.json({
+            status: 200,
+            data: "success"
         });
     })
 ];
