@@ -1,5 +1,6 @@
 package org.github.guardjo.dientitian.scheduler.api.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
@@ -89,8 +90,13 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public void updateShiftColors(String label, String color) {
         log.info("Update shift color, label: {}, color: {}", label, color);
-        // TODO 기능 구현
-        log.info("Shift color updated.");
+
+        ShiftTypeEntity shiftTypeEntity = shiftTypeRepository.findByLabel(label)
+                .orElseThrow(() -> new EntityNotFoundException("근무타입 정보를 찾을 수 없습니다."));
+        String lastColor = shiftTypeEntity.getColor();
+        shiftTypeEntity.setColor(color);
+
+        log.info("Shift color updated, label: {}, color: {} -> {}", label, lastColor, color);
     }
 
     private List<ScheduleEntity> parseExcel(MultipartFile excelFile, String name, AccountEntity account, int year, int month) {

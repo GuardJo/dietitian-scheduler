@@ -1,5 +1,6 @@
 package org.github.guardjo.dientitian.scheduler.api.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.DailyShift;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
@@ -29,6 +30,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -261,6 +263,39 @@ class ScheduleServiceTest {
         assertThat(result).isEmpty();
 
         then(shiftTypeRepository).should().findAll();
+        verifyNoInteractions(accountRepository, excelScheduleParser, scheduleRepository);
+    }
+
+    @DisplayName("근무 타입의 색상을 정상적으로 변경한다.")
+    @Test
+    void test_updateShiftColors_success() {
+        String label = "A";
+        String oldColor = "#FF0000";
+        String newColor = "#00FF00";
+        ShiftTypeEntity shiftType = TestDataGenerator.shiftTypeEntity(label, LocalTime.of(8, 30), LocalTime.of(18, 0), oldColor);
+
+        given(shiftTypeRepository.findByLabel(eq(label))).willReturn(Optional.of(shiftType));
+
+        assertThatCode(() -> scheduleService.updateShiftColors(label, newColor))
+                .doesNotThrowAnyException();
+
+        assertThat(shiftType.getColor()).isEqualTo(newColor);
+        then(shiftTypeRepository).should().findByLabel(eq(label));
+        verifyNoInteractions(accountRepository, excelScheduleParser, scheduleRepository);
+    }
+
+    @DisplayName("존재하지 않는 근무 타입의 색상을 변경하려고 하면 예외가 발생한다.")
+    @Test
+    void test_updateShiftColors_shift_type_not_found() {
+        String label = "UNKNOWN";
+        String newColor = "#00FF00";
+
+        given(shiftTypeRepository.findByLabel(eq(label))).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> scheduleService.updateShiftColors(label, newColor))
+                .isInstanceOf(EntityNotFoundException.class);
+
+        then(shiftTypeRepository).should().findByLabel(eq(label));
         verifyNoInteractions(accountRepository, excelScheduleParser, scheduleRepository);
     }
 
