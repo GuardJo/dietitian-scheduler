@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Min;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
+import org.github.guardjo.dientitian.scheduler.api.model.dto.ShiftColorUpdateRequest;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.ShiftScheduleUploadRequest;
 
 import java.util.Map;
@@ -26,4 +27,7 @@ public interface ScheduleApiDocs {
 
     @Operation(summary = "근무 스케줄 타입 목록 조회", description = "영양사 근무 스케줄 타입 및 지정 색상 정보를 조회한다.")
     BaseResponse<Map<String, String>> getScheduleTypes();
+
+    @Operation(summary = "근무 타입 색상 변경", description = "특정 근무 타입에 대한 색상을 주어진 필드 내 색상으로 변경한다.")
+    void updateShiftColors(@Valid ShiftColorUpdateRequest updateRequest);
 }

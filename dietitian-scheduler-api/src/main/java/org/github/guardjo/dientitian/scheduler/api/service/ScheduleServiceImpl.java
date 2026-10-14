@@ -85,6 +85,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         return shiftTypeMap;
     }
 
+    @Transactional
+    @Override
+    public void updateShiftColors(String label, String color) {
+        log.info("Update shift color, label: {}, color: {}", label, color);
+        // TODO 기능 구현
+        log.info("Shift color updated.");
+    }
+
     private List<ScheduleEntity> parseExcel(MultipartFile excelFile, String name, AccountEntity account, int year, int month) {
         List<ShiftTypeEntity> shiftTypes = shiftTypeRepository.findAll();
         List<DailyShift> dailyShifts = excelScheduleParser.parse(excelFile, name);
