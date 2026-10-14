@@ -10,6 +10,14 @@ export interface ShiftColorChangeRequest {
     color: string;
 }
 
+export interface PersonalScheduleRegisterRequest {
+    startDate: string; // yyyy-MM-dd
+    startTime: string | null; // HH:mm, 하루 종일일 경우 null
+    endDate: string; // yyyy-MM-dd
+    endTime: string | null; // HH:mm, 하루 종일일 경우 null
+    allDay: boolean;
+}
+
 export const scheduleService = {
     getSchedules(year: number, month: number): Promise<MonthData> {
         return http.get(`/api/schedules?year=${year}&month=${month}`);
@@ -24,6 +32,15 @@ export const scheduleService = {
         formData.append("file", file);
 
         return http.post("/api/schedules", formData);
+    },
+    registerPersonalSchedule(registerReq: PersonalScheduleRegisterRequest): Promise<void> {
+        return http.post("/api/schedules/personal", {
+            startDate: registerReq.startDate,
+            startTime: registerReq.startTime,
+            endDate: registerReq.endDate,
+            endTime: registerReq.endTime,
+            allDay: registerReq.allDay,
+        });
     },
     updateShiftColor(changeReq: ShiftColorChangeRequest): Promise<void> {
         return http.patch(`/api/schedules/shifts/colors`, {
