@@ -1,11 +1,11 @@
 import {Meta, StoryObj} from "@storybook/nextjs-vite";
-import ShiftRegisterModal from "@/components/shift-register-modal";
+import ScheduleRegisterModal from "@/components/schedule-register-modal";
 import {action} from "storybook/actions";
 
 const meta = {
-    title: "components/ShiftRegisterModal",
-    component: ShiftRegisterModal,
-} satisfies Meta<typeof ShiftRegisterModal>;
+    title: "components/ScheduleRegisterModal",
+    component: ScheduleRegisterModal,
+} satisfies Meta<typeof ScheduleRegisterModal>;
 
 export default meta;
 

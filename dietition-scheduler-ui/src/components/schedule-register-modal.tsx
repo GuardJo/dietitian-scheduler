@@ -15,17 +15,17 @@ const disabledClassName = "disabled:cursor-not-allowed disabled:opacity-50";
 
 const padTwo = (value: number) => value.toString().padStart(2, "0");
 
-export default function ShiftRegisterModal({baseYear, baseMonth, isOpen, setIsOpen}: ShiftRegisterModalProps) {
+export default function ScheduleRegisterModal({baseYear, baseMonth, isOpen, setIsOpen}: ShiftRegisterModalProps) {
     return (
         <>
             {isOpen &&
-                <ShiftRegisterModalContent key={`${baseYear}-${baseMonth}`} baseYear={baseYear} baseMonth={baseMonth}
-                                           setIsOpen={setIsOpen}/>}
+                <ScheduleRegisterModalContent key={`${baseYear}-${baseMonth}`} baseYear={baseYear} baseMonth={baseMonth}
+                                              setIsOpen={setIsOpen}/>}
         </>
     )
 }
 
-function ShiftRegisterModalContent({baseYear, baseMonth, setIsOpen}: Omit<ShiftRegisterModalProps, "isOpen">) {
+function ScheduleRegisterModalContent({baseYear, baseMonth, setIsOpen}: Omit<ShiftRegisterModalProps, "isOpen">) {
     const [scheduleType, setScheduleType] = useState<ScheduleType>("shift");
 
     return (
