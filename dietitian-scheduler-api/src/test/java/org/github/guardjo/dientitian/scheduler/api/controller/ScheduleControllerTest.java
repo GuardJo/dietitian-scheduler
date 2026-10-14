@@ -5,6 +5,7 @@ import org.github.guardjo.dientitian.scheduler.api.jwt.JwtUtil;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
+import org.github.guardjo.dientitian.scheduler.api.model.dto.ShiftColorUpdateRequest;
 import org.github.guardjo.dientitian.scheduler.api.repository.AccountEntityRepository;
 import org.github.guardjo.dientitian.scheduler.api.service.ScheduleService;
 import org.junit.jupiter.api.DisplayName;
@@ -31,10 +32,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -299,6 +300,43 @@ class ScheduleControllerTest {
         assertThat(actual.data()).isEmpty();
 
         then(scheduleService).should().getShiftTypes();
+    }
+
+    @DisplayName("PATCH: /api/schedules/shifts/colors -> 정상 응답")
+    @Test
+    void test_update_shift_colors() throws Exception {
+        String shiftType = "ALL";
+        String color = "#FF0000";
+        String requestBody = objectMapper.writeValueAsString(new ShiftColorUpdateRequest(shiftType, color));
+
+        willDoNothing().given(scheduleService).updateShiftColors(eq(shiftType), eq(color));
+
+        mvc.perform(patch(SCHEDULE_URL + "/shifts/colors")
+                        .contentType(APPLICATION_JSON)
+                        .content(requestBody)
+                        .with(authentication(authenticated()))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        then(scheduleService).should().updateShiftColors(eq(shiftType), eq(color));
+    }
+
+    @DisplayName("PATCH: /api/schedules/shifts/colors -> 요청 필드가 올바르지 않을 경우")
+    @ParameterizedTest(name = "shiftType = {0}, color = {1}")
+    @CsvSource({"ALL, ", " , ", ", #FF0000", "ALL, color"})
+    void test_update_shift_colors_bad_request(String shiftType, String color) throws Exception {
+        String requestBody = objectMapper.writeValueAsString(new ShiftColorUpdateRequest(shiftType, color));
+
+        mvc.perform(patch(SCHEDULE_URL + "/shifts/colors")
+                        .contentType(APPLICATION_JSON)
+                        .content(requestBody)
+                        .with(authentication(authenticated()))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(scheduleService);
     }
 
     private Authentication authenticated() {

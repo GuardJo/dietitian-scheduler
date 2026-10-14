@@ -6,6 +6,7 @@ import org.github.guardjo.dientitian.scheduler.api.controller.docs.ScheduleApiDo
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
+import org.github.guardjo.dientitian.scheduler.api.model.dto.ShiftColorUpdateRequest;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.ShiftScheduleUploadRequest;
 import org.github.guardjo.dientitian.scheduler.api.service.ScheduleService;
 import org.springframework.http.HttpStatus;
@@ -48,5 +49,13 @@ public class ScheduleController implements ScheduleApiDocs {
         Map<String, String> types = scheduleService.getShiftTypes();
 
         return BaseResponse.of(HttpStatus.OK, types);
+    }
+
+    @PatchMapping("/shifts/colors")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Override
+    public void updateShiftColors(@RequestBody ShiftColorUpdateRequest updateRequest) {
+        log.info("PATCH : /api/schedules/shifts/colors, updateRequest = {}", updateRequest);
+        scheduleService.updateShiftColors(updateRequest.shiftType(), updateRequest.color());
     }
 }

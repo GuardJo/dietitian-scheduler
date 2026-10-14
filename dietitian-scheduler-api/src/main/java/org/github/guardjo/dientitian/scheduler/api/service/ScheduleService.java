@@ -36,4 +36,12 @@ public interface ScheduleService {
      * @return 근무 타입별 라벨 및 지정 색상 정보
      */
     Map<String, String> getShiftTypes();
+
+    /**
+     * 주어진 라벨에 해당하는 근무타입의 색상을 주어진 색상으로 변경한다.
+     *
+     * @param label 근무타입
+     * @param color 변경할 색상
+     */
+    void updateShiftColors(String label, String color);
 }

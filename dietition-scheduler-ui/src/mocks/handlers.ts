@@ -111,6 +111,11 @@ export const handlers = [
             data: data
         });
     }),
+    http.patch("*/api/schedules/shifts/colors", async () => {
+        return HttpResponse.json({
+            status: 204,
+        }, {status: 204});
+    }),
     http.post("*/api/schedules", async ({request}) => {
         const formData = await request.formData();
         const year = formData.get("year");
