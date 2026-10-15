@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.DailyShift;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
+import org.github.guardjo.dientitian.scheduler.api.model.dto.PersonalScheduleRequest;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.AccountEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.ScheduleEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.ShiftTypeEntity;
@@ -97,6 +98,13 @@ public class ScheduleServiceImpl implements ScheduleService {
         shiftTypeEntity.setColor(color);
 
         log.info("Shift color updated, label: {}, color: {} -> {}", label, lastColor, color);
+    }
+
+    @Override
+    public void createPersonalSchedule(String userId, PersonalScheduleRequest request) {
+        log.info("Create personal schedule, userId: {}, title: {}", userId, request.title());
+        // TODO 기능 구현 예정
+        log.info("Personal schedule created.");
     }
 
     private List<ScheduleEntity> parseExcel(MultipartFile excelFile, String name, AccountEntity account, int year, int month) {

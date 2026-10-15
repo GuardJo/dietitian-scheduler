@@ -2,6 +2,7 @@ package org.github.guardjo.dientitian.scheduler.api.service;
 
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
+import org.github.guardjo.dientitian.scheduler.api.model.dto.PersonalScheduleRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -44,4 +45,12 @@ public interface ScheduleService {
      * @param color 변경할 색상
      */
     void updateShiftColors(String label, String color);
+
+    /**
+     * 사용자 식별키와 요청 정보를 기반으로 신규 개인 일정을 저장한다.
+     *
+     * @param userId  사용자 식별키
+     * @param request 저장할 개인 스케줄 정보
+     */
+    void createPersonalSchedule(String userId, PersonalScheduleRequest request);
 }

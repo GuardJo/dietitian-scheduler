@@ -6,6 +6,7 @@ import org.github.guardjo.dientitian.scheduler.api.controller.docs.ScheduleApiDo
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
+import org.github.guardjo.dientitian.scheduler.api.model.dto.PersonalScheduleRequest;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.ShiftColorUpdateRequest;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.ShiftScheduleUploadRequest;
 import org.github.guardjo.dientitian.scheduler.api.service.ScheduleService;
@@ -57,5 +58,13 @@ public class ScheduleController implements ScheduleApiDocs {
     public void updateShiftColors(@RequestBody ShiftColorUpdateRequest updateRequest) {
         log.info("PATCH : /api/schedules/shifts/colors, updateRequest = {}", updateRequest);
         scheduleService.updateShiftColors(updateRequest.shiftType(), updateRequest.color());
+    }
+
+    @PostMapping("/personal")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Override
+    public void createPersonalSchedule(@AuthenticationPrincipal AccountUserDetails userDetails, @RequestBody PersonalScheduleRequest request) {
+        log.info("POST : /api/schedules/personal, userId = {}, startDate = {}, endDate = {}, title = {}", userDetails.id(), request.startDate(), request.endDate(), request.title());
+        scheduleService.createPersonalSchedule(userDetails.getUsername(), request);
     }
 }

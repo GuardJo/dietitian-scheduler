@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Min;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.BaseResponse;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
+import org.github.guardjo.dientitian.scheduler.api.model.dto.PersonalScheduleRequest;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.ShiftColorUpdateRequest;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.ShiftScheduleUploadRequest;
 
@@ -30,4 +31,7 @@ public interface ScheduleApiDocs {
 
     @Operation(summary = "근무 타입 색상 변경", description = "특정 근무 타입에 대한 색상을 주어진 필드 내 색상으로 변경한다.")
     void updateShiftColors(@Valid ShiftColorUpdateRequest updateRequest);
+
+    @Operation(summary = "개인 스케줄 등록", description = "일정 시작 및 종료 일자 및 시각을 기준으로 개인 스케줄을 등록한다.")
+    void createPersonalSchedule(@Parameter(hidden = true) AccountUserDetails userDetails, @Valid PersonalScheduleRequest request);
 }
