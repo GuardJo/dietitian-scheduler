@@ -11,6 +11,8 @@ export interface ShiftColorChangeRequest {
 }
 
 export interface PersonalScheduleRegisterRequest {
+    title: string;
+    memo: string | null; // 선택 입력
     startDate: string; // yyyy-MM-dd
     startTime: string | null; // HH:mm, 하루 종일일 경우 null
     endDate: string; // yyyy-MM-dd
@@ -35,6 +37,8 @@ export const scheduleService = {
     },
     registerPersonalSchedule(registerReq: PersonalScheduleRegisterRequest): Promise<void> {
         return http.post("/api/schedules/personal", {
+            title: registerReq.title,
+            memo: registerReq.memo,
             startDate: registerReq.startDate,
             startTime: registerReq.startTime,
             endDate: registerReq.endDate,

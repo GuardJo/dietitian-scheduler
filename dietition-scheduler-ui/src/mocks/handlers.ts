@@ -135,7 +135,7 @@ export const handlers = [
     }),
     http.post("*/api/schedules/personal", async ({}) => {
         return HttpResponse.json({
-            status: 204,
-        }, {status: 204});
+            status: 201,
+        }, {status: 201});
     })
 ];

@@ -11,6 +11,9 @@ const scheduleTypeOptions: { value: ScheduleType, label: string }[] = [
 const hourOptions = Array.from({length: 24}, (_, index) => index);
 const minuteOptions = Array.from({length: 6}, (_, index) => index * 10);
 const selectClassName = "h-10 rounded-lg border-2 border-input bg-input px-2 text-[15px] outline-none";
+// DB 컬럼 길이 (personal_event.title, personal_event.memo)
+const titleMaxLength = 60;
+const memoMaxLength = 300;
 const disabledClassName = "disabled:cursor-not-allowed disabled:opacity-50";
 
 const padTwo = (value: number) => value.toString().padStart(2, "0");
@@ -122,10 +125,14 @@ function PersonalScheduleForm({baseYear, baseMonth, setIsOpen}: Omit<ShiftRegist
     const [start, setStart] = useState<DateTimeInput>({date: defaultDate, hour: 9, minute: 0});
     const [end, setEnd] = useState<DateTimeInput>({date: defaultDate, hour: 10, minute: 0});
     const [isAllDay, setIsAllDay] = useState(false);
+    const [title, setTitle] = useState("");
+    const [memo, setMemo] = useState("");
 
     // 하루 종일일 경우 시간 정보 없이 시작일 ~ 종료일(포함)로 등록
     const startTime = isAllDay ? null : toTime(start);
     const endTime = isAllDay ? null : toTime(end);
+    const trimmedTitle = title.trim();
+    const trimmedMemo = memo.trim();
     const isFilled = !!start.date && !!end.date;
     const isValidRange = isFilled && (isAllDay
         ? start.date <= end.date
@@ -134,6 +141,8 @@ function PersonalScheduleForm({baseYear, baseMonth, setIsOpen}: Omit<ShiftRegist
     const {mutate: registerPersonalScheduleMutate, isPending} = useMutation({
         mutationKey: ['registerPersonalSchedule', start.date, startTime, end.date, endTime],
         mutationFn: async () => await scheduleService.registerPersonalSchedule({
+            title: trimmedTitle,
+            memo: trimmedMemo || null,
             startDate: start.date,
             startTime,
             endDate: end.date,
@@ -153,6 +162,11 @@ function PersonalScheduleForm({baseYear, baseMonth, setIsOpen}: Omit<ShiftRegist
 
     return (
         <>
+            <label className="mt-5 flex flex-col gap-1.5 text-[13px] font-medium">제목
+                <input type="text" value={title} maxLength={titleMaxLength} placeholder="일정 제목을 입력하세요"
+                       onChange={(event) => setTitle(event.target.value)}
+                       className={`${selectClassName} placeholder:text-muted-foreground`}/>
+            </label>
             <label className="mt-5 flex w-fit cursor-pointer items-center gap-2 text-[14px] font-medium">
                 <input type="checkbox" checked={isAllDay} onChange={(event) => setIsAllDay(event.target.checked)}
                        className="size-4 accent-primary"/>하루 종일
@@ -161,7 +175,14 @@ function PersonalScheduleForm({baseYear, baseMonth, setIsOpen}: Omit<ShiftRegist
             <DateTimeField label="종료" value={end} onChange={setEnd} minDate={start.date} isTimeDisabled={isAllDay}/>
             {isFilled && !isValidRange &&
                 <p className="mt-2 text-[12px] text-destructive">{isAllDay ? "종료 일자는 시작 일자 이후여야 합니다." : "종료 일시는 시작 일시 이후여야 합니다."}</p>}
-            <button type="button" disabled={!isValidRange || isPending} onClick={() => registerPersonalScheduleMutate()}
+            <label className="mt-5 flex flex-col gap-1.5 text-[13px] font-medium">
+                <span>비고 <span className="font-normal text-muted-foreground">(선택)</span></span>
+                <textarea value={memo} maxLength={memoMaxLength} rows={3} placeholder="메모를 입력하세요"
+                          onChange={(event) => setMemo(event.target.value)}
+                          className="resize-none rounded-lg border-2 border-input bg-input p-2 text-[15px] outline-none placeholder:text-muted-foreground"/>
+            </label>
+            <button type="button" disabled={!trimmedTitle || !isValidRange || isPending}
+                    onClick={() => registerPersonalScheduleMutate()}
                     className="mt-5 h-11 w-full rounded-lg bg-primary text-[16px] font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50">등록하기
             </button>
         </>
