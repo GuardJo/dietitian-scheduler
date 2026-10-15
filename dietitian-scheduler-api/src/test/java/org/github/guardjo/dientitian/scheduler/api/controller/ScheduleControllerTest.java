@@ -351,7 +351,7 @@ class ScheduleControllerTest {
                 false, "개인일정1", "메모");
         String requestBody = objectMapper.writeValueAsString(request);
 
-        willDoNothing().given(scheduleService).createPersonalSchedule(eq(USER_DETAILS.getUsername()), eq(request));
+        willDoNothing().given(scheduleService).createPersonalSchedule(eq(USER_DETAILS.id()), eq(request));
 
         mvc.perform(post(SCHEDULE_URL + "/personal")
                         .contentType(APPLICATION_JSON)
@@ -361,7 +361,7 @@ class ScheduleControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated());
 
-        then(scheduleService).should().createPersonalSchedule(eq(USER_DETAILS.getUsername()), eq(request));
+        then(scheduleService).should().createPersonalSchedule(eq(USER_DETAILS.id()), eq(request));
     }
 
     @DisplayName("POST: /api/schedules/personal -> 하루종일 일정으로 시각 정보가 없을 때")
@@ -381,7 +381,7 @@ class ScheduleControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated());
 
-        then(scheduleService).should().createPersonalSchedule(eq(USER_DETAILS.getUsername()), eq(request));
+        then(scheduleService).should().createPersonalSchedule(eq(USER_DETAILS.id()), eq(request));
     }
 
     @DisplayName("POST: /api/schedules/personal -> 필수 필드가 올바르지 않을 경우")

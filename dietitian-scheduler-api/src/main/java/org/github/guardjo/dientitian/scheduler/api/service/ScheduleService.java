@@ -52,5 +52,5 @@ public interface ScheduleService {
      * @param userId  사용자 식별키
      * @param request 저장할 개인 스케줄 정보
      */
-    void createPersonalSchedule(String userId, PersonalScheduleRequest request);
+    void createPersonalSchedule(Long userId, PersonalScheduleRequest request);
 }

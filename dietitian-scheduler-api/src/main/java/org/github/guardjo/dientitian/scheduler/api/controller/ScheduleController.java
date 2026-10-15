@@ -65,6 +65,6 @@ public class ScheduleController implements ScheduleApiDocs {
     @Override
     public void createPersonalSchedule(@AuthenticationPrincipal AccountUserDetails userDetails, @RequestBody PersonalScheduleRequest request) {
         log.info("POST : /api/schedules/personal, userId = {}, startDate = {}, endDate = {}, title = {}", userDetails.id(), request.startDate(), request.endDate(), request.title());
-        scheduleService.createPersonalSchedule(userDetails.getUsername(), request);
+        scheduleService.createPersonalSchedule(userDetails.id(), request);
     }
 }
