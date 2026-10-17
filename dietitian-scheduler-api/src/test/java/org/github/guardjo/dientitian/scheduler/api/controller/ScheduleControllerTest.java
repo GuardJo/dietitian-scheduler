@@ -441,13 +441,18 @@ class ScheduleControllerTest {
                 {"startDate": "%s", "endDate": "2026-09-02", "allDay": true, "title": "개인일정1"}
                 """.formatted(startDate);
 
-        mvc.perform(post(SCHEDULE_URL + "/personal")
+        MvcResult response = mvc.perform(post(SCHEDULE_URL + "/personal")
                         .contentType(APPLICATION_JSON)
                         .content(requestBody)
                         .with(authentication(authenticated()))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        BaseResponse<String> actual = toBaseResponse(response);
+        assertThat(actual.status()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(actual.data()).isEqualTo("날짜 값은 yyyy-MM-dd 형식이어야 합니다.");
 
         verifyNoInteractions(scheduleService);
     }
