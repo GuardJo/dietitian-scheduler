@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.DailyShift;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
+import org.github.guardjo.dientitian.scheduler.api.model.dto.PersonalEventSummary;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.PersonalScheduleRequest;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.AccountEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.PersonalEventEntity;
@@ -73,9 +74,12 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         Map<Integer, String> shiftsData = makeShiftsData(schedules);
 
+        // TODO 기능 구현
+        Map<Integer, PersonalEventSummary> personalEventSummaries = new HashMap<>();
+
         log.info("Month schedule data retrieved.");
 
-        return new MonthScheduleData(year, month, String.format("%d년 %d월", year, month), shiftsData.size(), shiftsData);
+        return new MonthScheduleData(year, month, String.format("%d년 %d월", year, month), shiftsData.size(), shiftsData, personalEventSummaries);
     }
 
     @Transactional(readOnly = true)

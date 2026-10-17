@@ -18,6 +18,9 @@ public record MonthScheduleData(
         int shiftCount,
 
         @Schema(description = "일자별 근무 타입", example = "{'1': 'C', '2': 'A', '3': 'C'}")
-        Map<Integer, String> shifts
+        Map<Integer, String> shifts,
+
+        @Schema(description = "일자별 개인 일정", example = "{'1': {id: 1, title: '치과 예약', startTime: '19:00', endTime: '20:00'}}")
+        Map<Integer, PersonalEventSummary> personalEvents
 ) {
 }
