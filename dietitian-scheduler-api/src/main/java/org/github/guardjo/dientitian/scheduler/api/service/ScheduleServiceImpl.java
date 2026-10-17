@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -71,11 +72,11 @@ public class ScheduleServiceImpl implements ScheduleService {
         LocalDate endDate = startDate.plusMonths(1).minusDays(1);
 
         List<ScheduleEntity> schedules = scheduleRepository.findAllByAccount_IdAndWorkDateBetween(accountId, startDate, endDate, Sort.by(Sort.Direction.ASC, "workDate"));
-
         Map<Integer, String> shiftsData = makeShiftsData(schedules);
 
-        // TODO 기능 구현
-        Map<Integer, PersonalEventSummary> personalEventSummaries = new HashMap<>();
+        List<PersonalEventEntity> personalEvents = personalEventRepository.findAllByAccountIdAndEventDateBetween(accountId, startDate, endDate,
+                Sort.by(Sort.Order.asc("eventDate"), Sort.Order.asc("startTime")));
+        Map<Integer, List<PersonalEventSummary>> personalEventSummaries = makePersonalEventSummaryMap(personalEvents);
 
         log.info("Month schedule data retrieved.");
 
@@ -186,5 +187,26 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         return personalEventEntities;
+    }
+
+    /*
+    PersonalEvent Entity 목록을 일자별 목록으로 mapping (일자 내 순서는 조회 순서 유지)
+     */
+    private Map<Integer, List<PersonalEventSummary>> makePersonalEventSummaryMap(List<PersonalEventEntity> personalEventEntities) {
+        return personalEventEntities.stream()
+                .collect(Collectors.groupingBy(personalEvent -> personalEvent.getEventDate().getDayOfMonth(), TreeMap::new,
+                        Collectors.mapping(this::makePersonalEventSummary, Collectors.toList())));
+    }
+
+    /*
+    PersonalEvent Entity에 대한 summary 객체 구성
+     */
+    private PersonalEventSummary makePersonalEventSummary(PersonalEventEntity personalEventEntity) {
+        return new PersonalEventSummary(
+                personalEventEntity.getId(),
+                personalEventEntity.getTitle(),
+                personalEventEntity.getStartTime(),
+                personalEventEntity.getEndTime()
+        );
     }
 }

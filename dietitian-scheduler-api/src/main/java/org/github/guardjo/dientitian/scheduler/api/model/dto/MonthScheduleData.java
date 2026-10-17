@@ -2,6 +2,7 @@ package org.github.guardjo.dientitian.scheduler.api.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.List;
 import java.util.Map;
 
 public record MonthScheduleData(
@@ -20,7 +21,7 @@ public record MonthScheduleData(
         @Schema(description = "일자별 근무 타입", example = "{'1': 'C', '2': 'A', '3': 'C'}")
         Map<Integer, String> shifts,
 
-        @Schema(description = "일자별 개인 일정", example = "{'1': {id: 1, title: '치과 예약', startTime: '19:00', endTime: '20:00'}}")
-        Map<Integer, PersonalEventSummary> personalEvents
+        @Schema(description = "일자별 개인 일정", example = "{'1': [{id: 1, title: '치과 예약', startTime: '19:00', endTime: '20:00'}]}")
+        Map<Integer, List<PersonalEventSummary>> personalEvents
 ) {
 }
