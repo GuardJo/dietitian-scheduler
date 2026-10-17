@@ -4,10 +4,13 @@ import jakarta.persistence.EntityNotFoundException;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.DailyShift;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
+import org.github.guardjo.dientitian.scheduler.api.model.dto.PersonalScheduleRequest;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.AccountEntity;
+import org.github.guardjo.dientitian.scheduler.api.model.entity.PersonalEventEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.ScheduleEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.ShiftTypeEntity;
 import org.github.guardjo.dientitian.scheduler.api.repository.AccountEntityRepository;
+import org.github.guardjo.dientitian.scheduler.api.repository.PersonalEventEntityRepository;
 import org.github.guardjo.dientitian.scheduler.api.repository.ScheduleEntityRepository;
 import org.github.guardjo.dientitian.scheduler.api.repository.ShiftTypeEntityRepository;
 import org.github.guardjo.dientitian.scheduler.api.util.ExcelScheduleParser;
@@ -50,6 +53,7 @@ class ScheduleServiceTest {
     private static final MultipartFile EXCEL_FILE = new MockMultipartFile("file", "schedule.xlsx",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", new byte[]{1, 2, 3});
     private static final Sort WORK_DATE_ASC = Sort.by(Sort.Direction.ASC, "workDate");
+    private static final LocalTime END_OF_DAY = LocalTime.of(23, 59, 59);
 
     @Mock
     private AccountEntityRepository accountRepository;
@@ -63,8 +67,14 @@ class ScheduleServiceTest {
     @Mock
     private ScheduleEntityRepository scheduleRepository;
 
+    @Mock
+    private PersonalEventEntityRepository personalEventRepository;
+
     @Captor
     private ArgumentCaptor<List<ScheduleEntity>> scheduleEntitiesCaptor;
+
+    @Captor
+    private ArgumentCaptor<List<PersonalEventEntity>> personalEventEntitiesCaptor;
 
     @InjectMocks
     private ScheduleServiceImpl scheduleService;
@@ -297,6 +307,154 @@ class ScheduleServiceTest {
 
         then(shiftTypeRepository).should().findByLabel(eq(label));
         verifyNoInteractions(accountRepository, excelScheduleParser, scheduleRepository);
+    }
+
+    @DisplayName("시작일자와 종료일자가 같으면 요청 시각 그대로 단일 개인 일정을 저장한다.")
+    @Test
+    void test_createPersonalSchedule_same_day() {
+        AccountEntity account = accountEntity();
+        LocalDate eventDate = LocalDate.of(YEAR, MONTH, 1);
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(17, 0);
+        PersonalScheduleRequest request = new PersonalScheduleRequest(
+                eventDate, startTime, eventDate, endTime, false, "개인일정1", "메모");
+
+        given(accountRepository.getReferenceById(eq(USER_DETAILS.id()))).willReturn(account);
+
+        assertThatCode(() -> scheduleService.createPersonalSchedule(USER_DETAILS.id(), request))
+                .doesNotThrowAnyException();
+
+        then(accountRepository).should().getReferenceById(eq(USER_DETAILS.id()));
+        then(personalEventRepository).should().saveAll(personalEventEntitiesCaptor.capture());
+        List<PersonalEventEntity> saved = personalEventEntitiesCaptor.getValue();
+
+        assertThat(saved).hasSize(1);
+        PersonalEventEntity event = saved.getFirst();
+        assertThat(event.getAccount()).isEqualTo(account);
+        assertThat(event.getTitle()).isEqualTo(request.title());
+        assertThat(event.getMemo()).isEqualTo(request.memo());
+        assertThat(event.getEventDate()).isEqualTo(eventDate);
+        assertThat(event.getStartTime()).isEqualTo(startTime);
+        assertThat(event.getEndTime()).isEqualTo(endTime);
+        verifyNoInteractions(excelScheduleParser, shiftTypeRepository, scheduleRepository);
+    }
+
+    @DisplayName("하루종일 일정이면 시작 시각은 00:00, 종료 시각은 23:59:59로 저장한다.")
+    @Test
+    void test_createPersonalSchedule_same_day_all_day() {
+        AccountEntity account = accountEntity();
+        LocalDate eventDate = LocalDate.of(YEAR, MONTH, 1);
+        PersonalScheduleRequest request = new PersonalScheduleRequest(
+                eventDate, null, eventDate, null, true, "개인일정1", null);
+
+        given(accountRepository.getReferenceById(eq(USER_DETAILS.id()))).willReturn(account);
+
+        scheduleService.createPersonalSchedule(USER_DETAILS.id(), request);
+
+        then(personalEventRepository).should().saveAll(personalEventEntitiesCaptor.capture());
+        List<PersonalEventEntity> saved = personalEventEntitiesCaptor.getValue();
+
+        assertThat(saved).hasSize(1);
+        assertThat(saved.getFirst().getEventDate()).isEqualTo(eventDate);
+        assertThat(saved.getFirst().getStartTime()).isEqualTo(LocalTime.MIN);
+        assertThat(saved.getFirst().getEndTime()).isEqualTo(END_OF_DAY);
+        assertThat(saved.getFirst().getMemo()).isNull();
+    }
+
+    @DisplayName("시작일자와 종료일자가 다른 하루종일 일정이면 종료일자를 포함한 모든 일자를 00:00~23:59:59로 저장한다.")
+    @Test
+    void test_createPersonalSchedule_multiple_days() {
+        AccountEntity account = accountEntity();
+        LocalDate startDate = LocalDate.of(YEAR, MONTH, 1);
+        LocalDate endDate = LocalDate.of(YEAR, MONTH, 3);
+        PersonalScheduleRequest request = new PersonalScheduleRequest(
+                startDate, null, endDate, null, true, "휴가", "연차");
+
+        given(accountRepository.getReferenceById(eq(USER_DETAILS.id()))).willReturn(account);
+
+        scheduleService.createPersonalSchedule(USER_DETAILS.id(), request);
+
+        then(accountRepository).should().getReferenceById(eq(USER_DETAILS.id()));
+        then(personalEventRepository).should().saveAll(personalEventEntitiesCaptor.capture());
+        List<PersonalEventEntity> saved = personalEventEntitiesCaptor.getValue();
+
+        assertThat(saved).extracting(PersonalEventEntity::getEventDate)
+                .containsExactly(startDate, startDate.plusDays(1), endDate);
+        assertThat(saved).extracting(PersonalEventEntity::getAccount).containsOnly(account);
+        assertThat(saved).extracting(PersonalEventEntity::getTitle).containsOnly(request.title());
+        assertThat(saved).extracting(PersonalEventEntity::getMemo).containsOnly(request.memo());
+        assertThat(saved).extracting(PersonalEventEntity::getStartTime).containsOnly(LocalTime.MIN);
+        assertThat(saved).extracting(PersonalEventEntity::getEndTime).containsOnly(END_OF_DAY);
+    }
+
+    @DisplayName("시작일자와 종료일자가 다른 시간 지정 일정이면 첫날은 시작시각~23:59:59, 중간 날은 하루종일, 마지막 날은 00:00~종료시각으로 저장한다.")
+    @Test
+    void test_createPersonalSchedule_multiple_days_with_time() {
+        AccountEntity account = accountEntity();
+        LocalDate startDate = LocalDate.of(YEAR, MONTH, 1);
+        LocalDate endDate = LocalDate.of(YEAR, MONTH, 3);
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(17, 0);
+        PersonalScheduleRequest request = new PersonalScheduleRequest(
+                startDate, startTime, endDate, endTime, false, "출장", null);
+
+        given(accountRepository.getReferenceById(eq(USER_DETAILS.id()))).willReturn(account);
+
+        scheduleService.createPersonalSchedule(USER_DETAILS.id(), request);
+
+        then(personalEventRepository).should().saveAll(personalEventEntitiesCaptor.capture());
+        List<PersonalEventEntity> saved = personalEventEntitiesCaptor.getValue();
+
+        assertThat(saved).extracting(PersonalEventEntity::getEventDate, PersonalEventEntity::getStartTime, PersonalEventEntity::getEndTime)
+                .containsExactly(
+                        tuple(startDate, startTime, END_OF_DAY),
+                        tuple(startDate.plusDays(1), LocalTime.MIN, END_OF_DAY),
+                        tuple(endDate, LocalTime.MIN, endTime)
+                );
+    }
+
+    @DisplayName("시작일자와 종료일자가 하루 차이인 시간 지정 일정이면 중간 날 없이 첫날과 마지막 날만 저장한다.")
+    @Test
+    void test_createPersonalSchedule_two_days_with_time() {
+        AccountEntity account = accountEntity();
+        LocalDate startDate = LocalDate.of(YEAR, MONTH, 1);
+        LocalDate endDate = startDate.plusDays(1);
+        LocalTime startTime = LocalTime.of(22, 0);
+        LocalTime endTime = LocalTime.of(6, 0);
+        PersonalScheduleRequest request = new PersonalScheduleRequest(
+                startDate, startTime, endDate, endTime, false, "야간 일정", null);
+
+        given(accountRepository.getReferenceById(eq(USER_DETAILS.id()))).willReturn(account);
+
+        scheduleService.createPersonalSchedule(USER_DETAILS.id(), request);
+
+        then(personalEventRepository).should().saveAll(personalEventEntitiesCaptor.capture());
+        List<PersonalEventEntity> saved = personalEventEntitiesCaptor.getValue();
+
+        assertThat(saved).extracting(PersonalEventEntity::getEventDate, PersonalEventEntity::getStartTime, PersonalEventEntity::getEndTime)
+                .containsExactly(
+                        tuple(startDate, startTime, END_OF_DAY),
+                        tuple(endDate, LocalTime.MIN, endTime)
+                );
+    }
+
+    @DisplayName("개인 일정을 저장하는 중 오류가 발생하면 예외가 발생한다.")
+    @Test
+    void test_createPersonalSchedule_save_error() {
+        AccountEntity account = accountEntity();
+        LocalDate eventDate = LocalDate.of(YEAR, MONTH, 1);
+        PersonalScheduleRequest request = new PersonalScheduleRequest(
+                eventDate, null, eventDate, null, true, "개인일정1", null);
+
+        given(accountRepository.getReferenceById(eq(USER_DETAILS.id()))).willReturn(account);
+        given(personalEventRepository.saveAll(anyList())).willThrow(new DataIntegrityViolationException("저장 실패"));
+
+        assertThatThrownBy(() -> scheduleService.createPersonalSchedule(USER_DETAILS.id(), request))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .hasMessage("저장 실패");
+
+        then(accountRepository).should().getReferenceById(eq(USER_DETAILS.id()));
+        then(personalEventRepository).should().saveAll(anyList());
     }
 
     private AccountEntity accountEntity() {

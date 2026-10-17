@@ -24,14 +24,15 @@ comment on column account.updated_at is '수정일시';
 create sequence shift_type_seq start with 1 increment by 1;
 comment on sequence shift_type_seq is '근무 타입 식별키 시퀀스';
 
-create table shift_type (
-                            id bigint primary key default nextval('shift_type_seq'),
-                            label varchar(20) not null unique,
-                            start_time time(0) not null,
-                            end_time time(0) not null,
-                            color varchar(7) not null check ( color ~ '^#[0-9A-F]{6}$' ),
-    created_at timestamp not null default now(),
-    updated_at timestamp not null default now()
+create table shift_type
+(
+    id         bigint primary key   default nextval('shift_type_seq'),
+    label      varchar(20) not null unique,
+    start_time time(0)     not null,
+    end_time   time(0)     not null,
+    color      varchar(7)  not null check ( color ~ '^#[0-9A-F]{6}$' ),
+    created_at timestamp   not null default now(),
+    updated_at timestamp   not null default now()
 );
 comment on table shift_type is '근무 타입 테이블';
 comment on column shift_type.id is '근무 타입 식별키';
@@ -46,20 +47,21 @@ comment on column shift_type.updated_at is '수정일시';
 create sequence schedule_seq start with 1 increment by 1;
 comment on sequence schedule_seq is '근무 스케줄 식별키 시퀀스';
 
-create table schedule(
-                         id bigint primary key default nextval('schedule_seq'),
-                         account_id bigint not null references account(id) on delete cascade,
-                         work_date date not null,
-                         shift_type_id bigint not null references shift_type(id) on delete cascade,
-                         memo varchar(255),
-                         created_at timestamp not null default now(),
-                         updated_at timestamp not null default now(),
-                         unique (account_id, work_date)
+create table schedule
+(
+    id            bigint primary key default nextval('schedule_seq'),
+    account_id    bigint    not null references account (id) on delete cascade,
+    work_date     date      not null,
+    shift_type_id bigint    not null references shift_type (id) on delete cascade,
+    memo          varchar(255),
+    created_at    timestamp not null default now(),
+    updated_at    timestamp not null default now(),
+    unique (account_id, work_date)
 );
 
-create index schedule_work_date_idx on schedule(work_date);
-create index schedule_shift_type_id_idx on schedule(shift_type_id);
-create index schedule_account_id_idx on schedule(account_id);
+create index schedule_work_date_idx on schedule (work_date);
+create index schedule_shift_type_id_idx on schedule (shift_type_id);
+create index schedule_account_id_idx on schedule (account_id);
 
 comment on table schedule is '근무 스케줄 테이블';
 comment on column schedule.id is '근무 스케줄 식별키';
@@ -74,16 +76,17 @@ comment on column schedule.updated_at is '수정일시';
 create sequence refresh_token_seq start with 1 increment by 1;
 comment on sequence refresh_token_seq is 'refreshToken 식별키 시퀀스';
 
-create table refresh_token(
-                              id bigint primary key default nextval('refresh_token_seq'),
-                              account_id bigint not null references account(id) on delete cascade,
-                              token_hash varchar(64) not null unique,
-                              expired_at timestamp not null,
-                              created_at timestamp not null default now(),
-                              updated_at timestamp not null default now()
+create table refresh_token
+(
+    id         bigint primary key   default nextval('refresh_token_seq'),
+    account_id bigint      not null references account (id) on delete cascade,
+    token_hash varchar(64) not null unique,
+    expired_at timestamp   not null,
+    created_at timestamp   not null default now(),
+    updated_at timestamp   not null default now()
 );
 
-create index refresh_token_account_id_idx on refresh_token(account_id);
+create index refresh_token_account_id_idx on refresh_token (account_id);
 
 comment on table refresh_token is '리프레시 토큰 관리 테이블';
 comment on column refresh_token.id is '리프레시 토큰 식별키';
@@ -92,3 +95,34 @@ comment on column refresh_token.token_hash is '해시 처리된 리프레시 토
 comment on column refresh_token.expired_at is '토큰 만료일시';
 comment on column refresh_token.created_at is '생성일시';
 comment ON column refresh_token.updated_at is '수정일시';
+
+--- 개인 일정 관리
+
+create sequence personal_event_seq start with 1 increment by 1;
+
+create table personal_event
+(
+    id         bigint primary key not null default nextval('personal_event_seq'),
+    account_id bigint             not null references account (id),
+    event_date date               not null,
+    start_time time(0),
+    end_time   time(0),
+    title      varchar(60)        not null,
+    memo       varchar(300),
+    created_at timestamp          not null default now(),
+    updated_at timestamp          not null default now()
+);
+
+create index personal_event_account_id_event_date_idx on personal_event (account_id, event_date);
+
+comment on sequence personal_event_seq is '개인 일정 시퀀스';
+comment on table personal_event is '개인 일정 테이블';
+comment on column personal_event.id is '개인 일정 식별키';
+comment on column personal_event.account_id is 'ACCOUNT 식별키';
+comment on column personal_event.event_date is '일정 연월';
+comment on column personal_event.start_time is '시작시각';
+comment on column personal_event.end_time is '종료시각';
+comment on column personal_event.title is '일정명';
+comment on column personal_event.memo is '비고';
+comment on column personal_event.created_at is '생성일시';
+comment on column personal_event.updated_at is '수정일시';

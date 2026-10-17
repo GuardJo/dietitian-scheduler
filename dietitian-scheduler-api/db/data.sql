@@ -20,3 +20,6 @@ insert into schedule(account_id, work_date, shift_type_id)
 values (1, '2026-09-10', 4);
 insert into schedule(account_id, work_date, shift_type_id)
 values (1, '2026-09-11', 1);
+
+insert into personal_event(account_id, event_date, start_time, end_time, title)
+values (1, '2026-10-01', '09:00:00', '10:00:00', 'test');

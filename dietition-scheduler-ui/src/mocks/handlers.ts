@@ -132,5 +132,10 @@ export const handlers = [
             status: 200,
             data: "success"
         });
+    }),
+    http.post("*/api/schedules/personal", async ({}) => {
+        return HttpResponse.json({
+            status: 201,
+        }, {status: 201});
     })
 ];

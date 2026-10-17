@@ -265,7 +265,20 @@ erDiagram
         datetime updated_at "not null"
     }
 
+    PERSONAL_EVENT {
+        bigint id PK
+        bigint account_id FK "ACCOUNR 테이블"
+        date event_date "not null"
+        time start_time
+        time end_time
+        varchar title "not null"
+        varchar memo
+        datetime created_at "not null"
+        datetime updated_at "not null"
+    }
+
     ACCOUNT ||--o{ SCHEDULE : account_id
     SHIFT_TYPE ||--o{ SCHEDULE : schedule_type_id
     ACCOUNT ||--o{ REFRESH_TOKEN : account_id
+    ACCOUNT ||--o{ PERSONAL_EVENT : account_id
 ```
