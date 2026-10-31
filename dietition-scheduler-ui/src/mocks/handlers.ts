@@ -90,7 +90,16 @@ export const handlers = [
             month: Number(month),
             label: `${month} ${year}`,
             shiftCount: 4,
-            shifts: {4: 'A', 5: 'C', 6: 'B', 10: 'A'}
+            shifts: {4: 'A', 5: 'C', 6: 'B', 10: 'A'},
+            personalEvents: {
+                5: [{id: 1, title: '치과 예약', startTime: '19:00', endTime: '20:00'}],
+                12: [
+                    {id: 2, title: '가족 여행', startTime: null, endTime: null},
+                    {id: 3, title: '저녁 약속', startTime: '18:30', endTime: '21:00'}
+                ],
+                13: [{id: 4, title: '가족 여행', startTime: null, endTime: null}],
+                14: [{id: 5, title: '가족 여행', startTime: null, endTime: null}]
+            }
         }
 
         return HttpResponse.json({

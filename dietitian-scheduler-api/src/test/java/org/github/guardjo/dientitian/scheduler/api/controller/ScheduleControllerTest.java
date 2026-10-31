@@ -173,7 +173,7 @@ class ScheduleControllerTest {
         int year = 2026;
         int month = 9;
         Map<Integer, String> shifts = new TreeMap<>(Map.of(4, "a", 5, "c", 6, "b", 10, "a"));
-        MonthScheduleData data = new MonthScheduleData(year, month, "2026년 9월", shifts.size(), shifts);
+        MonthScheduleData data = new MonthScheduleData(year, month, "2026년 9월", shifts.size(), shifts, Map.of());
         BaseResponse<MonthScheduleData> expected = BaseResponse.of(HttpStatus.OK, data);
         given(scheduleService.getMonthScheduleData(eq(USER_DETAILS), eq(year), eq(month))).willReturn(data);
 
@@ -195,7 +195,7 @@ class ScheduleControllerTest {
     void test_get_schedule_empty() throws Exception {
         int year = 2026;
         int month = 10;
-        MonthScheduleData data = new MonthScheduleData(year, month, "2026년 10월", 0, Map.of());
+        MonthScheduleData data = new MonthScheduleData(year, month, "2026년 10월", 0, Map.of(), Map.of());
         given(scheduleService.getMonthScheduleData(eq(USER_DETAILS), eq(year), eq(month))).willReturn(data);
 
         MvcResult result = mvc.perform(get(SCHEDULE_URL)

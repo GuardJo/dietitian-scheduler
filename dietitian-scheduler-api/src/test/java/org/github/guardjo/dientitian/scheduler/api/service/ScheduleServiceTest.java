@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.github.guardjo.dientitian.scheduler.api.model.AccountUserDetails;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.DailyShift;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.MonthScheduleData;
+import org.github.guardjo.dientitian.scheduler.api.model.dto.PersonalEventSummary;
 import org.github.guardjo.dientitian.scheduler.api.model.dto.PersonalScheduleRequest;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.AccountEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.PersonalEventEntity;
@@ -53,6 +54,7 @@ class ScheduleServiceTest {
     private static final MultipartFile EXCEL_FILE = new MockMultipartFile("file", "schedule.xlsx",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", new byte[]{1, 2, 3});
     private static final Sort WORK_DATE_ASC = Sort.by(Sort.Direction.ASC, "workDate");
+    private static final Sort EVENT_DATE_START_TIME_ASC = Sort.by(Sort.Order.asc("eventDate"), Sort.Order.asc("startTime"));
     private static final LocalTime END_OF_DAY = LocalTime.of(23, 59, 59);
 
     @Mock
@@ -240,6 +242,116 @@ class ScheduleServiceTest {
         assertThat(result.label()).isEqualTo("2028년 2월");
         then(scheduleRepository).should().findAllByAccount_IdAndWorkDateBetween(eq(USER_DETAILS.id()), eq(februaryStart), eq(februaryEnd), eq(WORK_DATE_ASC));
         verifyNoInteractions(accountRepository, excelScheduleParser, shiftTypeRepository);
+    }
+
+    @DisplayName("해당 월의 개인 일정을 일자별 개인 일정 요약 정보로 변환하여 반환한다.")
+    @Test
+    void test_getMonthScheduleData_personal_events() {
+        AccountEntity account = accountEntity();
+
+        given(scheduleRepository.findAllByAccount_IdAndWorkDateBetween(eq(USER_DETAILS.id()), eq(START_DATE), eq(END_DATE), eq(WORK_DATE_ASC)))
+                .willReturn(List.of());
+        given(personalEventRepository.findAllByAccountIdAndEventDateBetween(eq(USER_DETAILS.id()), eq(START_DATE), eq(END_DATE), eq(EVENT_DATE_START_TIME_ASC)))
+                .willReturn(List.of(
+                        TestDataGenerator.personalEventEntity(1L, account, "치과 예약", LocalDate.of(YEAR, MONTH, 3), LocalTime.of(19, 0), LocalTime.of(20, 0)),
+                        TestDataGenerator.personalEventEntity(2L, account, "휴가", LocalDate.of(YEAR, MONTH, 10), LocalTime.MIN, END_OF_DAY),
+                        TestDataGenerator.personalEventEntity(3L, account, "회식", LocalDate.of(YEAR, MONTH, 30), LocalTime.of(18, 30), END_OF_DAY)
+                ));
+
+        MonthScheduleData result = scheduleService.getMonthScheduleData(USER_DETAILS, YEAR, MONTH);
+
+        assertThat(result.personalEvents()).containsExactly(
+                Map.entry(3, List.of(new PersonalEventSummary(1L, "치과 예약", LocalTime.of(19, 0), LocalTime.of(20, 0)))),
+                Map.entry(10, List.of(new PersonalEventSummary(2L, "휴가", LocalTime.MIN, END_OF_DAY))),
+                Map.entry(30, List.of(new PersonalEventSummary(3L, "회식", LocalTime.of(18, 30), END_OF_DAY)))
+        );
+
+        then(scheduleRepository).should().findAllByAccount_IdAndWorkDateBetween(eq(USER_DETAILS.id()), eq(START_DATE), eq(END_DATE), eq(WORK_DATE_ASC));
+        then(personalEventRepository).should().findAllByAccountIdAndEventDateBetween(eq(USER_DETAILS.id()), eq(START_DATE), eq(END_DATE), eq(EVENT_DATE_START_TIME_ASC));
+        verifyNoInteractions(accountRepository, excelScheduleParser, shiftTypeRepository);
+    }
+
+    @DisplayName("같은 일자에 개인 일정이 여러 개면 조회 순서대로 모두 반환한다.")
+    @Test
+    void test_getMonthScheduleData_personal_events_same_day() {
+        AccountEntity account = accountEntity();
+        LocalDate eventDate = LocalDate.of(YEAR, MONTH, 5);
+
+        given(scheduleRepository.findAllByAccount_IdAndWorkDateBetween(eq(USER_DETAILS.id()), eq(START_DATE), eq(END_DATE), eq(WORK_DATE_ASC)))
+                .willReturn(List.of());
+        // 저장소에서 시작 시각 오름차순으로 정렬되어 반환된다.
+        given(personalEventRepository.findAllByAccountIdAndEventDateBetween(eq(USER_DETAILS.id()), eq(START_DATE), eq(END_DATE), eq(EVENT_DATE_START_TIME_ASC)))
+                .willReturn(List.of(
+                        TestDataGenerator.personalEventEntity(1L, account, "오전 일정", eventDate, LocalTime.of(9, 0), LocalTime.of(10, 0)),
+                        TestDataGenerator.personalEventEntity(2L, account, "오후 일정", eventDate, LocalTime.of(15, 0), LocalTime.of(16, 0)),
+                        TestDataGenerator.personalEventEntity(3L, account, "다른 날 일정", eventDate.plusDays(1), LocalTime.of(9, 0), LocalTime.of(10, 0))
+                ));
+
+        MonthScheduleData result = scheduleService.getMonthScheduleData(USER_DETAILS, YEAR, MONTH);
+
+        assertThat(result.personalEvents()).containsExactly(
+                Map.entry(5, List.of(
+                        new PersonalEventSummary(1L, "오전 일정", LocalTime.of(9, 0), LocalTime.of(10, 0)),
+                        new PersonalEventSummary(2L, "오후 일정", LocalTime.of(15, 0), LocalTime.of(16, 0))
+                )),
+                Map.entry(6, List.of(new PersonalEventSummary(3L, "다른 날 일정", LocalTime.of(9, 0), LocalTime.of(10, 0))))
+        );
+    }
+
+    @DisplayName("근무 스케줄과 개인 일정을 함께 조회하여 반환한다.")
+    @Test
+    void test_getMonthScheduleData_shifts_and_personal_events() {
+        AccountEntity account = accountEntity();
+        ShiftTypeEntity dayShift = TestDataGenerator.shiftTypeEntity("C", LocalTime.of(8, 30), LocalTime.of(18, 0), "#FFAA00");
+
+        given(scheduleRepository.findAllByAccount_IdAndWorkDateBetween(eq(USER_DETAILS.id()), eq(START_DATE), eq(END_DATE), eq(WORK_DATE_ASC)))
+                .willReturn(List.of(
+                        TestDataGenerator.scheduleEntity(account, LocalDate.of(YEAR, MONTH, 1), dayShift),
+                        TestDataGenerator.scheduleEntity(account, LocalDate.of(YEAR, MONTH, 2), dayShift)
+                ));
+        given(personalEventRepository.findAllByAccountIdAndEventDateBetween(eq(USER_DETAILS.id()), eq(START_DATE), eq(END_DATE), eq(EVENT_DATE_START_TIME_ASC)))
+                .willReturn(List.of(
+                        TestDataGenerator.personalEventEntity(1L, account, "치과 예약", LocalDate.of(YEAR, MONTH, 2), LocalTime.of(19, 0), LocalTime.of(20, 0))
+                ));
+
+        MonthScheduleData result = scheduleService.getMonthScheduleData(USER_DETAILS, YEAR, MONTH);
+
+        // 개인 일정은 근무 스케줄 수에 포함되지 않는다.
+        assertThat(result.shiftCount()).isEqualTo(2);
+        assertThat(result.shifts()).containsExactly(Map.entry(1, "C"), Map.entry(2, "C"));
+        assertThat(result.personalEvents()).containsExactly(
+                Map.entry(2, List.of(new PersonalEventSummary(1L, "치과 예약", LocalTime.of(19, 0), LocalTime.of(20, 0))))
+        );
+    }
+
+    @DisplayName("해당 월의 개인 일정이 없으면 빈 개인 일정 데이터를 반환한다.")
+    @Test
+    void test_getMonthScheduleData_no_personal_events() {
+        given(scheduleRepository.findAllByAccount_IdAndWorkDateBetween(eq(USER_DETAILS.id()), eq(START_DATE), eq(END_DATE), eq(WORK_DATE_ASC)))
+                .willReturn(List.of());
+        given(personalEventRepository.findAllByAccountIdAndEventDateBetween(eq(USER_DETAILS.id()), eq(START_DATE), eq(END_DATE), eq(EVENT_DATE_START_TIME_ASC)))
+                .willReturn(List.of());
+
+        MonthScheduleData result = scheduleService.getMonthScheduleData(USER_DETAILS, YEAR, MONTH);
+
+        assertThat(result.personalEvents()).isEmpty();
+        then(personalEventRepository).should().findAllByAccountIdAndEventDateBetween(eq(USER_DETAILS.id()), eq(START_DATE), eq(END_DATE), eq(EVENT_DATE_START_TIME_ASC));
+    }
+
+    @DisplayName("개인 일정 조회 기간은 해당 월의 1일부터 말일까지로 설정된다.")
+    @Test
+    void test_getMonthScheduleData_personal_events_end_of_month() {
+        LocalDate februaryStart = LocalDate.of(2028, 2, 1);
+        LocalDate februaryEnd = LocalDate.of(2028, 2, 29); // 윤년
+
+        given(scheduleRepository.findAllByAccount_IdAndWorkDateBetween(eq(USER_DETAILS.id()), eq(februaryStart), eq(februaryEnd), eq(WORK_DATE_ASC)))
+                .willReturn(List.of());
+        given(personalEventRepository.findAllByAccountIdAndEventDateBetween(eq(USER_DETAILS.id()), eq(februaryStart), eq(februaryEnd), eq(EVENT_DATE_START_TIME_ASC)))
+                .willReturn(List.of());
+
+        scheduleService.getMonthScheduleData(USER_DETAILS, 2028, 2);
+
+        then(personalEventRepository).should().findAllByAccountIdAndEventDateBetween(eq(USER_DETAILS.id()), eq(februaryStart), eq(februaryEnd), eq(EVENT_DATE_START_TIME_ASC));
     }
 
     @DisplayName("근무 타입 목록을 라벨 순으로 정렬된 라벨-색상 Map으로 반환한다.")

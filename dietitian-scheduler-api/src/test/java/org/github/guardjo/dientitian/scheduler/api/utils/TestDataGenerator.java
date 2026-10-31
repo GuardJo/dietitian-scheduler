@@ -1,6 +1,7 @@
 package org.github.guardjo.dientitian.scheduler.api.utils;
 
 import org.github.guardjo.dientitian.scheduler.api.model.entity.AccountEntity;
+import org.github.guardjo.dientitian.scheduler.api.model.entity.PersonalEventEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.RefreshTokenEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.ScheduleEntity;
 import org.github.guardjo.dientitian.scheduler.api.model.entity.ShiftTypeEntity;
@@ -61,6 +62,27 @@ public class TestDataGenerator {
                 .account(account)
                 .tokenHash(tokenHash)
                 .expiredAt(expiredAt)
+                .build();
+    }
+
+    public static PersonalEventEntity personalEventEntity(AccountEntity account, String title, LocalDate eventDate, LocalTime startTime, LocalTime endTime) {
+        return PersonalEventEntity.builder()
+                .account(account)
+                .title(title)
+                .eventDate(eventDate)
+                .startTime(startTime)
+                .endTime(endTime)
+                .build();
+    }
+
+    public static PersonalEventEntity personalEventEntity(Long id, AccountEntity account, String title, LocalDate eventDate, LocalTime startTime, LocalTime endTime) {
+        return PersonalEventEntity.builder()
+                .id(id)
+                .account(account)
+                .title(title)
+                .eventDate(eventDate)
+                .startTime(startTime)
+                .endTime(endTime)
                 .build();
     }
 }
