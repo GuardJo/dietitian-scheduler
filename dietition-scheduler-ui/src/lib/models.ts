@@ -17,8 +17,7 @@ export interface PersonalEvent {
 
 export interface CalendarCell {
     day?: number,
-    shift?: Shift,
-    personalEvents?: PersonalEvent[]
+    shift?: Shift
 }
 
 export interface MonthData {

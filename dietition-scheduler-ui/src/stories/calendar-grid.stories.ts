@@ -25,7 +25,12 @@ export const HasData: Story = {
                     {id: 3, title: '저녁 약속', startTime: '18:30', endTime: '21:00'}
                 ],
                 13: [{id: 4, title: '가족 여행', startTime: null, endTime: null}],
-                14: [{id: 5, title: '가족 여행', startTime: null, endTime: null}]
+                14: [
+                    {id: 5, title: '가족 여행', startTime: null, endTime: null},
+                    {id: 6, title: '운동', startTime: '07:00', endTime: '08:00'}
+                ],
+                19: [{id: 7, title: '학회', startTime: null, endTime: null}],
+                20: [{id: 8, title: '학회', startTime: null, endTime: null}]
             }
         },
         colors: {
